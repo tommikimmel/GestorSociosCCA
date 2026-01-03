@@ -1,17 +1,34 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
-import Socio from "./pages/Socio";
+import Dashboard from "./pages/Dashboard";
+import NotFound from "./pages/NotFound";
+import ProtectedAdmin from "./components/ProtectedAdmin";
+import { useAuth } from "./context/AuthContext";
 
 export default function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <p>Cargando...</p>;
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
-
+      {/* Ruta pública */}
       <Route path="/login" element={<Login />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="/socio" element={<Socio />} />
 
+      {/* App protegida (solo admins) */}
+      <Route
+        path="/"
+        element={
+          <ProtectedAdmin>
+            <Dashboard />
+          </ProtectedAdmin>
+        }
+      />
+
+      {/* Cualquier otra cosa */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
