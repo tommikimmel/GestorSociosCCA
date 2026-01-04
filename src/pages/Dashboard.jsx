@@ -1,3 +1,7 @@
-export default function Admin() {
-  return <h1>Panel Administrador</h1>;
+import { logout } from "../services/auth";
+
+export default function Dashboard() {
+  return (
+    <button onClick={logout}>Cerrar sesión</button>
+  );
 }

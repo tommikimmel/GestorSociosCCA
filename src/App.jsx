@@ -1,37 +1,26 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import ProtectedAdmin from "./components/ProtectedAdmin";
-import { useAuth } from "../context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
-  const { user, loading } = useAuth();
-
-  if (!user && !loading) {
-    return <Navigate to="/login" />;
-  }
-
-  if (loading) {
-    return <p>Cargando...</p>;
-  }
-
   return (
     <Routes>
-      {/* Ruta pública */}
-      <Route path="/login" element={<Login />} />
+      {/* Página pública: login + register */}
+      <Route path="/auth" element={<Auth />} />
 
-      {/* App protegida (solo admins) */}
+      {/* App protegida: solo usuarios logueados */}
       <Route
         path="/"
         element={
-          <ProtectedAdmin>
+          <ProtectedRoute>
             <Dashboard />
-          </ProtectedAdmin>
+          </ProtectedRoute>
         }
       />
 
-      {/* Cualquier otra cosa */}
+      {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
