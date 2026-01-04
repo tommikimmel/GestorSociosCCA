@@ -1,24 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { observarSesion } from "../services/auth";
-import { esAdmin } from "../services/admins";
+import { observeAuth } from "../services/auth";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [admin, setAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = observarSesion(async (firebaseUser) => {
-      if (firebaseUser) {
-        const ok = await esAdmin(firebaseUser.uid);
-        setUser(firebaseUser);
-        setAdmin(ok);
-      } else {
-        setUser(null);
-        setAdmin(false);
-      }
+    const unsub = observeAuth((firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
@@ -26,7 +17,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, admin, loading }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
     </AuthContext.Provider>
   );

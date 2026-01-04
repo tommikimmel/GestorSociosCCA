@@ -1,12 +1,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedAdmin from "./components/ProtectedAdmin";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function App() {
   const { user, loading } = useAuth();
+
+  if (!user && !loading) {
+    return <Navigate to="/login" />;
+  }
 
   if (loading) {
     return <p>Cargando...</p>;
