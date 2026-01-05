@@ -7,6 +7,8 @@ import Administracion from "./pages/Administracion";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
+import Gastos from "./pages/Gastos";
+
 export default function App() {
   return (
     <Routes>
@@ -55,6 +57,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/gastos"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <Gastos />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      /> 
 
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -13,23 +13,22 @@ import { db } from "../firebase/config";
 import { esDeudor } from "../utils/estadoSocio";
 
 const sociosRef = collection(db, "socios");
-
 /* =========================
-   CREATE
+  CREATE
 ========================= */
 export async function crearSocio(data) {
   const socio = {
     nombre: data.nombre,
     apellido: data.apellido,
 
-    fechaPagoCuota: data.fechaPagoCuota,
-    fechaVencimientoCuota: data.fechaVencimientoCuota,
+    fechaPagoCuota: null,
+    fechaVencimientoCuota: null,
 
-    fechaPagoSeguro: data.fechaPagoSeguro,
-    fechaVencimientoSeguro: data.fechaVencimientoSeguro,
+    fechaPagoSeguro: null,
+    fechaVencimientoSeguro: null,
 
-    deudorCuota: esDeudor(data.fechaVencimientoCuota),
-    deudorSeguro: esDeudor(data.fechaVencimientoSeguro),
+    deudorCuota: false,
+    deudorSeguro: false,
 
     activo: true,
     creadoEn: Timestamp.now(),

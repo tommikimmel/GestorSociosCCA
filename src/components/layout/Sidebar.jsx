@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, CreditCard, Settings, X, Menu, LogOut } from "lucide-react";
+import { Home, Users, CreditCard, Settings, X, Menu, LogOut, Store } from "lucide-react";
 import logoCCA from "../../assets/logoCCA.svg";
 import { logout } from "../../services/auth";
 
@@ -24,6 +24,11 @@ const links = [
     label: "Administración",
     icon: Settings
   },
+  {
+    to: "/gastos",
+    label : "Gastos",
+    icon: Store
+  }
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
