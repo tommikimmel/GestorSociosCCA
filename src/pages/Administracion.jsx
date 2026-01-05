@@ -1,24 +1,40 @@
 import { useState, useEffect } from "react";
-import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X } from "lucide-react";
+import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank } from "lucide-react";
 import { obtenerConfiguracion, actualizarConfiguracion } from "../services/configuracion";
+import { obtenerPagos } from "../services/pagos";
+import { obtenerGastos } from "../services/gastos";
 
 export default function Administracion() {
-  const [config, setConfig] = useState(null);
+  const [config, setConfig] = useState(null); 
+  const [pagos, setPagos] = useState([]);
+  const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
   const [valorTemporal, setValorTemporal] = useState("");
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferData, setTransferData] = useState({
+    origen: "",
+    destino: "",
+    monto: ""
+  });
 
   useEffect(() => {
-    cargarConfiguracion();
+    cargarDatos();
   }, []);
 
-  const cargarConfiguracion = async () => {
+  const cargarDatos = async () => {
     try {
       setLoading(true);
-      const datos = await obtenerConfiguracion();
-      setConfig(datos);
+      const [configData, pagosData, gastosData] = await Promise.all([
+        obtenerConfiguracion(),
+        obtenerPagos(),
+        obtenerGastos()
+      ]);
+      setConfig(configData);
+      setPagos(pagosData);
+      setGastos(gastosData);
     } catch (error) {
-      console.error("Error al cargar configuración:", error);
+      console.error("Error al cargar datos:", error);
     } finally {
       setLoading(false);
     }
@@ -64,6 +80,123 @@ export default function Administracion() {
     }).format(precio);
   };
 
+  // Calcular saldos reales de cuentas
+  const calcularCuentas = () => {
+    let efectivo = config?.cuentaEfectivo || 0;
+    let transferencia = config?.cuentaTransferencia || 0;
+    let plazoFijo = config?.cuentaPlazoFijo || 0;
+
+    // Sumar pagos
+    pagos.forEach(pago => {
+      if (pago.metodoPago === 'efectivo') {
+        efectivo += pago.montoTotal || 0;
+      } else if (pago.metodoPago === 'transferencia') {
+        transferencia += pago.montoTotal || 0;
+      }
+    });
+
+    // Restar gastos
+    gastos.forEach(gasto => {
+      if (gasto.metodoPago === 'Efectivo') {
+        efectivo -= gasto.monto || 0;
+      } else if (gasto.metodoPago === 'Transferencia') {
+        transferencia -= gasto.monto || 0;
+      }
+    });
+
+    return { efectivo, transferencia, plazoFijo };
+  };
+
+  const resetTransferForm = () => {
+    setTransferData({
+      origen: "",
+      destino: "",
+      monto: ""
+    });
+    setShowTransferModal(false);
+  };
+
+  const handleTransferChange = (e) => {
+    const { name, value } = e.target;
+    setTransferData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const realizarTransferencia = async (e) => {
+    e.preventDefault();
+
+    if (!transferData.origen || !transferData.destino || !transferData.monto) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    if (transferData.origen === transferData.destino) {
+      alert("Las cuentas de origen y destino no pueden ser la misma");
+      return;
+    }
+
+    const monto = parseFloat(transferData.monto);
+    if (isNaN(monto) || monto <= 0) {
+      alert("Por favor ingresa un monto válido");
+      return;
+    }
+
+    // Verificar saldo suficiente
+    const cuentaOrigen = transferData.origen;
+    const cuentas = calcularCuentas();
+    let saldoOrigen = 0;
+    
+    if (cuentaOrigen === 'cuentaEfectivo') {
+      saldoOrigen = cuentas.efectivo;
+    } else if (cuentaOrigen === 'cuentaTransferencia') {
+      saldoOrigen = cuentas.transferencia;
+    } else if (cuentaOrigen === 'cuentaPlazoFijo') {
+      saldoOrigen = cuentas.plazoFijo;
+    }
+
+    if (saldoOrigen < monto) {
+      alert(`Saldo insuficiente en ${getNombreCuenta(cuentaOrigen)}. Saldo disponible: ${formatearPrecio(saldoOrigen)}`);
+      return;
+    }
+
+    try {
+      const nuevaConfig = {
+        ...config,
+        [transferData.origen]: (config[transferData.origen] || 0) - monto,
+        [transferData.destino]: (config[transferData.destino] || 0) + monto,
+      };
+
+      await actualizarConfiguracion(nuevaConfig);
+      setConfig(nuevaConfig);
+      alert(`Transferencia exitosa: ${formatearPrecio(monto)} de ${getNombreCuenta(transferData.origen)} a ${getNombreCuenta(transferData.destino)}`);
+      resetTransferForm();
+      cargarDatos(); // Recargar datos para actualizar saldos
+    } catch (error) {
+      console.error("Error al realizar transferencia:", error);
+      alert("Error al realizar la transferencia");
+    }
+  };
+
+  const getNombreCuenta = (cuenta) => {
+    const nombres = {
+      cuentaEfectivo: "Efectivo",
+      cuentaTransferencia: "Transferencia",
+      cuentaPlazoFijo: "Plazo Fijo"
+    };
+    return nombres[cuenta] || cuenta;
+  };
+
+  const getIconoCuenta = (cuenta) => {
+    const iconos = {
+      cuentaEfectivo: <Wallet className="w-4 h-4" />,
+      cuentaTransferencia: <CreditCard className="w-4 h-4" />,
+      cuentaPlazoFijo: <PiggyBank className="w-4 h-4" />
+    };
+    return iconos[cuenta] || null;
+  };
+
   if (loading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
@@ -74,7 +207,9 @@ export default function Administracion() {
       </div>
     );
   }
+const cuentas = calcularCuentas();
 
+  
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -364,6 +499,74 @@ export default function Administracion() {
         </div>
       </div>
 
+      {/* Transferencias entre Cuentas */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-purple-100">
+                <ArrowRightLeft className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Transferencias entre Cuentas</h2>
+                <p className="text-sm text-gray-500">Mueve dinero entre efectivo, transferencia y plazo fijo</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowTransferModal(true)}
+              className="text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+              style={{backgroundColor: '#03a9f4'}}
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+              Nueva Transferencia
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Efectivo */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-white">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-green-100">
+                  <Wallet className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Efectivo</h3>
+              </div>
+              <p className="text-2xl font-bold text-green-600">
+                {formatearPrecio(cuentas.efectivo)}
+              </p>
+            </div>
+
+            {/* Transferencia */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Transferencia</h3>
+              </div>
+              <p className="text-2xl font-bold text-blue-600">
+                {formatearPrecio(cuentas.transferencia)}
+              </p>
+            </div>
+
+            {/* Plazo Fijo */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-white">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <PiggyBank className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Plazo Fijo</h3>
+              </div>
+              <p className="text-2xl font-bold text-purple-600">
+                {formatearPrecio(cuentas.plazoFijo)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Resumen de fechas importantes */}
       <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -400,6 +603,141 @@ export default function Administracion() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Transferencia */}
+      {showTransferModal && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetTransferForm();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <ArrowRightLeft className="w-6 h-6" style={{color: '#03a9f4'}} />
+                  Transferir Dinero
+                </h2>
+                <button
+                  onClick={resetTransferForm}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={realizarTransferencia}>
+                {/* Cuenta Origen */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cuenta Origen *
+                  </label>
+                  <select
+                    name="origen"
+                    value={transferData.origen}
+                    onChange={handleTransferChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                    required
+                  >
+                    <option value="">Seleccionar cuenta...</option>
+                    <option value="cuentaEfectivo">💵 Efectivo ({formatearPrecio(cuentas.efectivo)})</option>
+                    <option value="cuentaTransferencia">💳 Transferencia ({formatearPrecio(cuentas.transferencia)})</option>
+                    <option value="cuentaPlazoFijo">🏦 Plazo Fijo ({formatearPrecio(cuentas.plazoFijo)})</option>
+                  </select>
+                </div>
+
+                {/* Cuenta Destino */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cuenta Destino *
+                  </label>
+                  <select
+                    name="destino"
+                    value={transferData.destino}
+                    onChange={handleTransferChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                    required
+                  >
+                    <option value="">Seleccionar cuenta...</option>
+                    <option value="cuentaEfectivo" disabled={transferData.origen === 'cuentaEfectivo'}>
+                      💵 Efectivo
+                    </option>
+                    <option value="cuentaTransferencia" disabled={transferData.origen === 'cuentaTransferencia'}>
+                      💳 Transferencia
+                    </option>
+                    <option value="cuentaPlazoFijo" disabled={transferData.origen === 'cuentaPlazoFijo'}>
+                      🏦 Plazo Fijo
+                    </option>
+                  </select>
+                </div>
+
+                {/* Monto */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Monto a Transferir *
+                  </label>
+                  <input
+                    type="number"
+                    name="monto"
+                    value={transferData.monto}
+                    onChange={handleTransferChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                {/* Resumen */}
+                {transferData.origen && transferData.destino && transferData.monto && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Resumen de la transferencia:</p>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        {getIconoCuenta(transferData.origen)}
+                        <span>{getNombreCuenta(transferData.origen)}</span>
+                        <ArrowRightLeft className="w-3 h-3 mx-2" />
+                        {getIconoCuenta(transferData.destino)}
+                        <span>{getNombreCuenta(transferData.destino)}</span>
+                      </div>
+                      <div className="pt-2 border-t border-gray-300">
+                        <span className="font-bold text-lg" style={{color: '#03a9f4'}}>
+                          {formatearPrecio(parseFloat(transferData.monto))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={resetTransferForm}
+                    className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                    style={{backgroundColor: '#03a9f4'}}
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                    Transferir
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

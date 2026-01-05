@@ -19,16 +19,16 @@ const links = [
     label: "Pagos",
     icon: CreditCard
   },
+  {
+    to: "/gastos",
+    label : "Gastos",
+    icon: Store
+  },
   { 
     to: "/administracion", 
     label: "Administración",
     icon: Settings
   },
-  {
-    to: "/gastos",
-    label : "Gastos",
-    icon: Store
-  }
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {

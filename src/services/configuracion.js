@@ -21,6 +21,9 @@ export async function obtenerConfiguracion() {
       cuotaMensual: 45000,
       cuotaMensualVencida: 50000,
       seguro: 15000,
+      cuentaEfectivo: 0,
+      cuentaTransferencia: 0,
+      cuentaPlazoFijo: 0,
     };
     await setDoc(configRef, defaultConfig);
     return defaultConfig;
