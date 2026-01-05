@@ -1,7 +1,7 @@
-import { logout } from "../services/auth";
-
 export default function Dashboard() {
   return (
-    <button onClick={logout}>Cerrar sesión</button>
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+    </div>
   );
 }

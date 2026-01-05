@@ -48,7 +48,7 @@ export default function Auth() {
         {/* Tarjeta de Login */}
         <div 
           onClick={() => setIsRegister(false)}
-          className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-8 cursor-pointer transition-all duration-500 min-h-[420px] ${
+          className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-8 cursor-pointer transition-all duration-500 min-h-105 ${
             !isRegister 
               ? 'ring-2 scale-105' 
               : 'opacity-60 hover:opacity-80'
@@ -124,7 +124,7 @@ export default function Auth() {
         {/* Tarjeta de Registro */}
         <div 
           onClick={() => setIsRegister(true)}
-          className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-8 cursor-pointer transition-all duration-500 min-h-[420px] ${
+          className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-8 cursor-pointer transition-all duration-500 min-h-105 ${
             isRegister 
               ? 'ring-2 scale-105' 
               : 'opacity-60 hover:opacity-80'
