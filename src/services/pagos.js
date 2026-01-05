@@ -9,6 +9,7 @@ import {
 
 import { db } from "../firebase/config";
 import { actualizarSocio } from "./socios";
+import { obtenerCuenta, actualizarSaldoCuenta } from "./cuentas";
 
 const pagosRef = collection(db, "pagos");
 
@@ -42,6 +43,19 @@ export async function registrarPago(data) {
   };
 
   await addDoc(pagosRef, pago);
+
+  // Actualizar el saldo de la cuenta correspondiente
+  try {
+    const cuentaId = metodoPago === 'efectivo' ? 'efectivo' : 'transferencia';
+    const cuenta = await obtenerCuenta(cuentaId);
+    if (cuenta) {
+      const nuevoSaldo = cuenta.saldo + pago.montoTotal;
+      await actualizarSaldoCuenta(cuentaId, nuevoSaldo);
+    }
+  } catch (error) {
+    console.error("Error al actualizar cuenta:", error);
+    // No lanzamos el error para no bloquear el registro del pago
+  }
 
   // Actualizar las fechas en el socio
   const actualizacionSocio = {};

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { obtenerPagos } from "../services/pagos";
 import { obtenerGastos } from "../services/gastos";
 import { obtenerSocios } from "../services/socios";
-import { obtenerConfiguracion } from "../services/configuracion";
+import { obtenerCuentas, actualizarSaldoCuenta, inicializarCuentas } from "../services/cuentas";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -12,16 +12,21 @@ import {
   PiggyBank,
   AlertCircle,
   DollarSign,
-  Calendar
+  Calendar,
+  Edit2,
+  Save,
+  X
 } from "lucide-react";
 
 export default function Dashboard() {
   const [pagos, setPagos] = useState([]);
   const [gastos, setGastos] = useState([]);
   const [socios, setSocios] = useState([]);
-  const [config, setConfig] = useState(null);
+  const [cuentas, setCuentas] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [vistaActiva, setVistaActiva] = useState("pagos"); // "pagos" o "gastos"
+  const [vistaActiva, setVistaActiva] = useState("pagos");
+  const [editandoCuenta, setEditandoCuenta] = useState(null); // "efectivo", "transferencia", "plazoFijo"
+  const [valorTemporal, setValorTemporal] = useState("");
 
   useEffect(() => {
     cargarDatos();
@@ -30,16 +35,19 @@ export default function Dashboard() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [pagosData, gastosData, sociosData, configData] = await Promise.all([
+      // Inicializar cuentas si es necesario
+      await inicializarCuentas();
+      
+      const [pagosData, gastosData, sociosData, cuentasData] = await Promise.all([
         obtenerPagos(),
         obtenerGastos(),
         obtenerSocios(),
-        obtenerConfiguracion(),
+        obtenerCuentas(),
       ]);
       setPagos(pagosData);
       setGastos(gastosData);
       setSocios(sociosData);
-      setConfig(configData);
+      setCuentas(cuentasData);
     } catch (error) {
       console.error("Error al cargar datos:", error);
     } finally {
@@ -55,29 +63,15 @@ export default function Dashboard() {
     }).format(precio);
   };
 
-  // Calcular totales de cuentas
+  // Obtener saldos directos de las cuentas (ya incluyen pagos y gastos actualizados automáticamente)
   const calcularCuentas = () => {
-    let efectivo = config?.cuentaEfectivo || 0;
-    let transferencia = config?.cuentaTransferencia || 0;
-    let plazoFijo = config?.cuentaPlazoFijo || 0;
+    if (!cuentas) {
+      return { efectivo: 0, transferencia: 0, plazoFijo: 0, total: 0 };
+    }
 
-    // Sumar pagos
-    pagos.forEach(pago => {
-      if (pago.metodoPago === 'efectivo') {
-        efectivo += pago.montoTotal || 0;
-      } else if (pago.metodoPago === 'transferencia') {
-        transferencia += pago.montoTotal || 0;
-      }
-    });
-
-    // Restar gastos
-    gastos.forEach(gasto => {
-      if (gasto.metodoPago === 'Efectivo') {
-        efectivo -= gasto.monto || 0;
-      } else if (gasto.metodoPago === 'Transferencia') {
-        transferencia -= gasto.monto || 0;
-      }
-    });
+    const efectivo = cuentas.efectivo?.saldo || 0;
+    const transferencia = cuentas.transferencia?.saldo || 0;
+    const plazoFijo = cuentas.plazoFijo?.saldo || 0;
 
     return { efectivo, transferencia, plazoFijo, total: efectivo + transferencia + plazoFijo };
   };
@@ -118,6 +112,35 @@ export default function Dashboard() {
       .sort((a, b) => `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`));
   };
 
+  const iniciarEdicionCuenta = (cuenta, valor) => {
+    console.log('Editando cuenta:', cuenta, 'Saldo actual:', valor);
+    setEditandoCuenta(cuenta);
+    setValorTemporal(valor.toString());
+  };
+
+  const cancelarEdicionCuenta = () => {
+    setEditandoCuenta(null);
+    setValorTemporal("");
+  };
+
+  const guardarCuenta = async () => {
+    const nuevoValor = parseFloat(valorTemporal);
+    if (isNaN(nuevoValor)) {
+      alert("Por favor ingresa un valor numérico válido");
+      return;
+    }
+
+    try {
+      await actualizarSaldoCuenta(editandoCuenta, nuevoValor);
+      setEditandoCuenta(null);
+      setValorTemporal("");
+      cargarDatos(); // Recargar para actualizar todo
+    } catch (error) {
+      console.error("Error al guardar cuenta:", error);
+      alert("Error al guardar los cambios");
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
@@ -131,7 +154,7 @@ export default function Dashboard() {
 
   const datosMensuales = calcularDatosMensuales();
   const maxMonto = Math.max(...datosMensuales.map(d => d.monto));
-  const cuentas = calcularCuentas();
+  const saldosCuentas = calcularCuentas();
   const deudores = obtenerDeudores();
 
   return (
@@ -147,36 +170,139 @@ export default function Dashboard() {
 
       {/* Cuentas Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        {/* Efectivo */}
+        <div 
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => editandoCuenta !== 'efectivo' && iniciarEdicionCuenta('efectivo', cuentas?.efectivo?.saldo || 0)}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-green-50">
               <Wallet className="w-5 h-5 text-green-600" />
             </div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Efectivo</p>
+            {editandoCuenta !== 'efectivo' && (
+              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
+            )}
           </div>
-          <p className="text-2xl font-bold text-green-600">{formatearPrecio(cuentas.efectivo)}</p>
+          {editandoCuenta === 'efectivo' ? (
+            <>
+            <p className="text-xs text-gray-400 mb-1">Saldo base (actual: {cuentas?.efectivo?.saldo || 0})</p>
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="number"
+                value={valorTemporal}
+                onChange={(e) => setValorTemporal(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-lg font-bold text-green-600"
+                autoFocus
+                step="0.01"
+                placeholder="0"
+              />
+              <button
+                onClick={guardarCuenta}
+                className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <button
+                onClick={cancelarEdicionCuenta}
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            </>
+          ) : (
+            <p className="text-2xl font-bold text-green-600">{formatearPrecio(saldosCuentas.efectivo)}</p>
+          )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        {/* Transferencia */}
+        <div 
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => editandoCuenta !== 'transferencia' && iniciarEdicionCuenta('transferencia', cuentas?.transferencia?.saldo || 0)}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-blue-50">
               <CreditCard className="w-5 h-5 text-blue-600" />
             </div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Transferencia</p>
+            {editandoCuenta !== 'transferencia' && (
+              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
+            )}
           </div>
-          <p className="text-2xl font-bold text-blue-600">{formatearPrecio(cuentas.transferencia)}</p>
+          {editandoCuenta === 'transferencia' ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="number"
+                value={valorTemporal}
+                onChange={(e) => setValorTemporal(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-lg font-bold text-blue-600"
+                autoFocus
+                step="0.01"
+                placeholder="0"
+              />
+              <button
+                onClick={guardarCuenta}
+                className="p-1.5 rounded bg-blue-100 text-blue-600 hover:bg-blue-200"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <button
+                onClick={cancelarEdicionCuenta}
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <p className="text-2xl font-bold text-blue-600">{formatearPrecio(saldosCuentas.transferencia)}</p>
+          )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        {/* Plazo Fijo */}
+        <div 
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => editandoCuenta !== 'plazoFijo' && iniciarEdicionCuenta('plazoFijo', cuentas?.plazoFijo?.saldo || 0)}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-purple-50">
               <PiggyBank className="w-5 h-5 text-purple-600" />
             </div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Plazo Fijo</p>
+            {editandoCuenta !== 'plazoFijo' && (
+              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
+            )}
           </div>
-          <p className="text-2xl font-bold text-purple-600">{formatearPrecio(cuentas.plazoFijo)}</p>
+          {editandoCuenta === 'plazoFijo' ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="number"
+                value={valorTemporal}
+                onChange={(e) => setValorTemporal(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-lg font-bold text-purple-600"
+                autoFocus
+                step="0.01"
+                placeholder="0"
+              />
+              <button
+                onClick={guardarCuenta}
+                className="p-1.5 rounded bg-purple-100 text-purple-600 hover:bg-purple-200"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <button
+                onClick={cancelarEdicionCuenta}
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <p className="text-2xl font-bold text-purple-600">{formatearPrecio(saldosCuentas.plazoFijo)}</p>
+          )}
         </div>
 
+        {/* Total */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg" style={{backgroundColor: '#e0f7fa'}}>
@@ -184,7 +310,7 @@ export default function Dashboard() {
             </div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
           </div>
-          <p className="text-2xl font-bold" style={{color: '#03a9f4'}}>{formatearPrecio(cuentas.total)}</p>
+          <p className="text-2xl font-bold" style={{color: '#03a9f4'}}>{formatearPrecio(saldosCuentas.total)}</p>
         </div>
       </div>
 

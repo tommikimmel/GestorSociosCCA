@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank } from "lucide-react";
+import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank, RefreshCw } from "lucide-react";
 import { obtenerConfiguracion, actualizarConfiguracion } from "../services/configuracion";
-import { obtenerPagos } from "../services/pagos";
-import { obtenerGastos } from "../services/gastos";
+import { obtenerCuentas, realizarTransferencia as realizarTransferenciaCuentas, inicializarCuentas } from "../services/cuentas";
+import { sincronizarSaldosCuentas } from "../services/migracion";
 
 export default function Administracion() {
   const [config, setConfig] = useState(null); 
-  const [pagos, setPagos] = useState([]);
-  const [gastos, setGastos] = useState([]);
+  const [cuentas, setCuentas] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
   const [valorTemporal, setValorTemporal] = useState("");
@@ -25,14 +24,15 @@ export default function Administracion() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [configData, pagosData, gastosData] = await Promise.all([
+      // Inicializar cuentas si es necesario
+      await inicializarCuentas();
+      
+      const [configData, cuentasData] = await Promise.all([
         obtenerConfiguracion(),
-        obtenerPagos(),
-        obtenerGastos()
+        obtenerCuentas()
       ]);
       setConfig(configData);
-      setPagos(pagosData);
-      setGastos(gastosData);
+      setCuentas(cuentasData);
     } catch (error) {
       console.error("Error al cargar datos:", error);
     } finally {
@@ -80,29 +80,15 @@ export default function Administracion() {
     }).format(precio);
   };
 
-  // Calcular saldos reales de cuentas
+  // Obtener saldos directos de las cuentas (ya incluyen pagos y gastos actualizados automáticamente)
   const calcularCuentas = () => {
-    let efectivo = config?.cuentaEfectivo || 0;
-    let transferencia = config?.cuentaTransferencia || 0;
-    let plazoFijo = config?.cuentaPlazoFijo || 0;
+    if (!cuentas) {
+      return { efectivo: 0, transferencia: 0, plazoFijo: 0 };
+    }
 
-    // Sumar pagos
-    pagos.forEach(pago => {
-      if (pago.metodoPago === 'efectivo') {
-        efectivo += pago.montoTotal || 0;
-      } else if (pago.metodoPago === 'transferencia') {
-        transferencia += pago.montoTotal || 0;
-      }
-    });
-
-    // Restar gastos
-    gastos.forEach(gasto => {
-      if (gasto.metodoPago === 'Efectivo') {
-        efectivo -= gasto.monto || 0;
-      } else if (gasto.metodoPago === 'Transferencia') {
-        transferencia -= gasto.monto || 0;
-      }
-    });
+    const efectivo = cuentas.efectivo?.saldo || 0;
+    const transferencia = cuentas.transferencia?.saldo || 0;
+    const plazoFijo = cuentas.plazoFijo?.saldo || 0;
 
     return { efectivo, transferencia, plazoFijo };
   };
@@ -143,39 +129,41 @@ export default function Administracion() {
       return;
     }
 
-    // Verificar saldo suficiente
-    const cuentaOrigen = transferData.origen;
-    const cuentas = calcularCuentas();
-    let saldoOrigen = 0;
-    
-    if (cuentaOrigen === 'cuentaEfectivo') {
-      saldoOrigen = cuentas.efectivo;
-    } else if (cuentaOrigen === 'cuentaTransferencia') {
-      saldoOrigen = cuentas.transferencia;
-    } else if (cuentaOrigen === 'cuentaPlazoFijo') {
-      saldoOrigen = cuentas.plazoFijo;
-    }
+    // Mapear los nombres de campos a IDs de cuentas
+    const mapeoIds = {
+      'cuentaEfectivo': 'efectivo',
+      'cuentaTransferencia': 'transferencia',
+      'cuentaPlazoFijo': 'plazoFijo'
+    };
 
-    if (saldoOrigen < monto) {
-      alert(`Saldo insuficiente en ${getNombreCuenta(cuentaOrigen)}. Saldo disponible: ${formatearPrecio(saldoOrigen)}`);
-      return;
-    }
+    const origenId = mapeoIds[transferData.origen];
+    const destinoId = mapeoIds[transferData.destino];
 
     try {
-      const nuevaConfig = {
-        ...config,
-        [transferData.origen]: (config[transferData.origen] || 0) - monto,
-        [transferData.destino]: (config[transferData.destino] || 0) + monto,
-      };
+      // Obtener saldos actuales directamente de las cuentas
+      const cuentaOrigen = cuentas[origenId];
+      const cuentaDestino = cuentas[destinoId];
 
-      await actualizarConfiguracion(nuevaConfig);
-      setConfig(nuevaConfig);
+      if (!cuentaOrigen || !cuentaDestino) {
+        alert("Error: No se pudieron obtener las cuentas");
+        return;
+      }
+
+      // Verificar saldo suficiente en la cuenta de origen
+      if (cuentaOrigen.saldo < monto) {
+        alert(`Saldo insuficiente en ${getNombreCuenta(transferData.origen)}. Saldo disponible: ${formatearPrecio(cuentaOrigen.saldo)}`);
+        return;
+      }
+
+      // Realizar la transferencia: restar de origen y sumar a destino
+      await realizarTransferenciaCuentas(origenId, destinoId, monto);
+      
       alert(`Transferencia exitosa: ${formatearPrecio(monto)} de ${getNombreCuenta(transferData.origen)} a ${getNombreCuenta(transferData.destino)}`);
       resetTransferForm();
       cargarDatos(); // Recargar datos para actualizar saldos
     } catch (error) {
       console.error("Error al realizar transferencia:", error);
-      alert("Error al realizar la transferencia");
+      alert("Error al realizar la transferencia: " + error.message);
     }
   };
 
@@ -197,6 +185,23 @@ export default function Administracion() {
     return iconos[cuenta] || null;
   };
 
+  const handleSincronizarSaldos = async () => {
+    if (!confirm("¿Deseas sincronizar los saldos de las cuentas basándose en todos los pagos y gastos existentes? Esto ajustará los saldos actuales.")) {
+      return;
+    }
+
+    try {
+      const resultado = await sincronizarSaldosCuentas();
+      if (resultado.success) {
+        alert(`Sincronización completada:\n\nEfectivo: $${resultado.saldos.efectivo.toLocaleString()}\nTransferencia: $${resultado.saldos.transferencia.toLocaleString()}\nPlazo Fijo: $${resultado.saldos.plazoFijo.toLocaleString()}`);
+        cargarDatos(); // Recargar los datos
+      }
+    } catch (error) {
+      console.error("Error en sincronización:", error);
+      alert("Error al sincronizar los saldos");
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
@@ -207,18 +212,30 @@ export default function Administracion() {
       </div>
     );
   }
-const cuentas = calcularCuentas();
+
+  const saldosCuentas = calcularCuentas();
 
   
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <Settings className="w-8 h-8" style={{color: '#03a9f4'}} />
-          Administración
-        </h1>
-        <p className="text-gray-600">Configuración de pagos y cuotas del club</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <Settings className="w-8 h-8" style={{color: '#03a9f4'}} />
+              Administración
+            </h1>
+            <p className="text-gray-600">Configuración de pagos y cuotas del club</p>
+          </div>
+          <button
+            onClick={handleSincronizarSaldos}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Sincronizar Saldos
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -534,7 +551,7 @@ const cuentas = calcularCuentas();
                 <h3 className="font-semibold text-gray-800">Efectivo</h3>
               </div>
               <p className="text-2xl font-bold text-green-600">
-                {formatearPrecio(cuentas.efectivo)}
+                {formatearPrecio(saldosCuentas.efectivo)}
               </p>
             </div>
 
@@ -547,7 +564,7 @@ const cuentas = calcularCuentas();
                 <h3 className="font-semibold text-gray-800">Transferencia</h3>
               </div>
               <p className="text-2xl font-bold text-blue-600">
-                {formatearPrecio(cuentas.transferencia)}
+                {formatearPrecio(saldosCuentas.transferencia)}
               </p>
             </div>
 
@@ -560,7 +577,7 @@ const cuentas = calcularCuentas();
                 <h3 className="font-semibold text-gray-800">Plazo Fijo</h3>
               </div>
               <p className="text-2xl font-bold text-purple-600">
-                {formatearPrecio(cuentas.plazoFijo)}
+                {formatearPrecio(saldosCuentas.plazoFijo)}
               </p>
             </div>
           </div>
@@ -644,9 +661,9 @@ const cuentas = calcularCuentas();
                     required
                   >
                     <option value="">Seleccionar cuenta...</option>
-                    <option value="cuentaEfectivo">💵 Efectivo ({formatearPrecio(cuentas.efectivo)})</option>
-                    <option value="cuentaTransferencia">💳 Transferencia ({formatearPrecio(cuentas.transferencia)})</option>
-                    <option value="cuentaPlazoFijo">🏦 Plazo Fijo ({formatearPrecio(cuentas.plazoFijo)})</option>
+                    <option value="cuentaEfectivo">💵 Efectivo ({formatearPrecio(saldosCuentas.efectivo)})</option>
+                    <option value="cuentaTransferencia">💳 Transferencia ({formatearPrecio(saldosCuentas.transferencia)})</option>
+                    <option value="cuentaPlazoFijo">🏦 Plazo Fijo ({formatearPrecio(saldosCuentas.plazoFijo)})</option>
                   </select>
                 </div>
 
