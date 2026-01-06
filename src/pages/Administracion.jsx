@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank, RefreshCw } from "lucide-react";
+import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank } from "lucide-react";
 import { obtenerConfiguracion, actualizarConfiguracion } from "../services/configuracion";
 import { obtenerCuentas, realizarTransferencia as realizarTransferenciaCuentas, inicializarCuentas } from "../services/cuentas";
-import { sincronizarSaldosCuentas } from "../services/migracion";
 
 export default function Administracion() {
   const [config, setConfig] = useState(null); 
@@ -11,6 +10,8 @@ export default function Administracion() {
   const [editando, setEditando] = useState(null);
   const [valorTemporal, setValorTemporal] = useState("");
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [propietarioEfectivo, setPropietarioEfectivo] = useState("Bernardo");
+  const [propietarioTransferencia, setPropietarioTransferencia] = useState("Bernardo");
   const [transferData, setTransferData] = useState({
     origen: "",
     destino: "",
@@ -83,14 +84,22 @@ export default function Administracion() {
   // Obtener saldos directos de las cuentas (ya incluyen pagos y gastos actualizados automáticamente)
   const calcularCuentas = () => {
     if (!cuentas) {
-      return { efectivo: 0, transferencia: 0, plazoFijo: 0 };
+      return { 
+        efectivoBernardo: 0, 
+        efectivoDaniel: 0, 
+        transferenciaBernardo: 0, 
+        transferenciaDaniel: 0, 
+        plazoFijo: 0 
+      };
     }
 
-    const efectivo = cuentas.efectivo?.saldo || 0;
-    const transferencia = cuentas.transferencia?.saldo || 0;
+    const efectivoBernardo = cuentas.efectivoBernardo?.saldo || 0;
+    const efectivoDaniel = cuentas.efectivoDaniel?.saldo || 0;
+    const transferenciaBernardo = cuentas.transferenciaBernardo?.saldo || 0;
+    const transferenciaDaniel = cuentas.transferenciaDaniel?.saldo || 0;
     const plazoFijo = cuentas.plazoFijo?.saldo || 0;
 
-    return { efectivo, transferencia, plazoFijo };
+    return { efectivoBernardo, efectivoDaniel, transferenciaBernardo, transferenciaDaniel, plazoFijo };
   };
 
   const resetTransferForm = () => {
@@ -131,8 +140,10 @@ export default function Administracion() {
 
     // Mapear los nombres de campos a IDs de cuentas
     const mapeoIds = {
-      'cuentaEfectivo': 'efectivo',
-      'cuentaTransferencia': 'transferencia',
+      'cuentaEfectivoBernardo': 'efectivoBernardo',
+      'cuentaEfectivoDaniel': 'efectivoDaniel',
+      'cuentaTransferenciaBernardo': 'transferenciaBernardo',
+      'cuentaTransferenciaDaniel': 'transferenciaDaniel',
       'cuentaPlazoFijo': 'plazoFijo'
     };
 
@@ -169,8 +180,10 @@ export default function Administracion() {
 
   const getNombreCuenta = (cuenta) => {
     const nombres = {
-      cuentaEfectivo: "Efectivo",
-      cuentaTransferencia: "Transferencia",
+      cuentaEfectivoBernardo: "Efectivo - Bernardo",
+      cuentaEfectivoDaniel: "Efectivo - Daniel",
+      cuentaTransferenciaBernardo: "Transferencia - Bernardo",
+      cuentaTransferenciaDaniel: "Transferencia - Daniel",
       cuentaPlazoFijo: "Plazo Fijo"
     };
     return nombres[cuenta] || cuenta;
@@ -178,28 +191,13 @@ export default function Administracion() {
 
   const getIconoCuenta = (cuenta) => {
     const iconos = {
-      cuentaEfectivo: <Wallet className="w-4 h-4" />,
-      cuentaTransferencia: <CreditCard className="w-4 h-4" />,
+      cuentaEfectivoBernardo: <Wallet className="w-4 h-4" />,
+      cuentaEfectivoDaniel: <Wallet className="w-4 h-4" />,
+      cuentaTransferenciaBernardo: <CreditCard className="w-4 h-4" />,
+      cuentaTransferenciaDaniel: <CreditCard className="w-4 h-4" />,
       cuentaPlazoFijo: <PiggyBank className="w-4 h-4" />
     };
     return iconos[cuenta] || null;
-  };
-
-  const handleSincronizarSaldos = async () => {
-    if (!confirm("¿Deseas sincronizar los saldos de las cuentas basándose en todos los pagos y gastos existentes? Esto ajustará los saldos actuales.")) {
-      return;
-    }
-
-    try {
-      const resultado = await sincronizarSaldosCuentas();
-      if (resultado.success) {
-        alert(`Sincronización completada:\n\nEfectivo: $${resultado.saldos.efectivo.toLocaleString()}\nTransferencia: $${resultado.saldos.transferencia.toLocaleString()}\nPlazo Fijo: $${resultado.saldos.plazoFijo.toLocaleString()}`);
-        cargarDatos(); // Recargar los datos
-      }
-    } catch (error) {
-      console.error("Error en sincronización:", error);
-      alert("Error al sincronizar los saldos");
-    }
   };
 
   if (loading) {
@@ -228,13 +226,6 @@ export default function Administracion() {
             </h1>
             <p className="text-gray-600">Configuración de pagos y cuotas del club</p>
           </div>
-          <button
-            onClick={handleSincronizarSaldos}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Sincronizar Saldos
-          </button>
         </div>
       </div>
 
@@ -542,29 +533,51 @@ export default function Administracion() {
 
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Efectivo */}
+            {/* Efectivo con Toggle */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-white">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <Wallet className="w-5 h-5 text-green-600" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-100">
+                    <Wallet className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Efectivo</h3>
+                    <p className="text-xs text-gray-600">{propietarioEfectivo === "Bernardo" ? "Bernardo F." : "Daniel C."}</p>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-800">Efectivo</h3>
+                <button
+                  onClick={() => setPropietarioEfectivo(prev => prev === "Bernardo" ? "Daniel" : "Bernardo")}
+                  className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                >
+                  Cambiar
+                </button>
               </div>
               <p className="text-2xl font-bold text-green-600">
-                {formatearPrecio(saldosCuentas.efectivo)}
+                {formatearPrecio(propietarioEfectivo === "Bernardo" ? saldosCuentas.efectivoBernardo : saldosCuentas.efectivoDaniel)}
               </p>
             </div>
 
-            {/* Transferencia */}
+            {/* Transferencia con Toggle */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Transferencia</h3>
+                    <p className="text-xs text-gray-600">{propietarioTransferencia === "Bernardo" ? "Bernardo F." : "Daniel C."}</p>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-800">Transferencia</h3>
+                <button
+                  onClick={() => setPropietarioTransferencia(prev => prev === "Bernardo" ? "Daniel" : "Bernardo")}
+                  className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                >
+                  Cambiar
+                </button>
               </div>
               <p className="text-2xl font-bold text-blue-600">
-                {formatearPrecio(saldosCuentas.transferencia)}
+                {formatearPrecio(propietarioTransferencia === "Bernardo" ? saldosCuentas.transferenciaBernardo : saldosCuentas.transferenciaDaniel)}
               </p>
             </div>
 
@@ -574,7 +587,10 @@ export default function Administracion() {
                 <div className="p-2 rounded-lg bg-purple-100">
                   <PiggyBank className="w-5 h-5 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-gray-800">Plazo Fijo</h3>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Plazo Fijo</h3>
+                  <p className="text-xs text-gray-600">Compartido</p>
+                </div>
               </div>
               <p className="text-2xl font-bold text-purple-600">
                 {formatearPrecio(saldosCuentas.plazoFijo)}
@@ -661,8 +677,10 @@ export default function Administracion() {
                     required
                   >
                     <option value="">Seleccionar cuenta...</option>
-                    <option value="cuentaEfectivo">💵 Efectivo ({formatearPrecio(saldosCuentas.efectivo)})</option>
-                    <option value="cuentaTransferencia">💳 Transferencia ({formatearPrecio(saldosCuentas.transferencia)})</option>
+                    <option value="cuentaEfectivoBernardo">💵 Efectivo - Bernardo ({formatearPrecio(saldosCuentas.efectivoBernardo)})</option>
+                    <option value="cuentaEfectivoDaniel">💵 Efectivo - Daniel ({formatearPrecio(saldosCuentas.efectivoDaniel)})</option>
+                    <option value="cuentaTransferenciaBernardo">💳 Transferencia - Bernardo ({formatearPrecio(saldosCuentas.transferenciaBernardo)})</option>
+                    <option value="cuentaTransferenciaDaniel">💳 Transferencia - Daniel ({formatearPrecio(saldosCuentas.transferenciaDaniel)})</option>
                     <option value="cuentaPlazoFijo">🏦 Plazo Fijo ({formatearPrecio(saldosCuentas.plazoFijo)})</option>
                   </select>
                 </div>
@@ -681,11 +699,17 @@ export default function Administracion() {
                     required
                   >
                     <option value="">Seleccionar cuenta...</option>
-                    <option value="cuentaEfectivo" disabled={transferData.origen === 'cuentaEfectivo'}>
-                      💵 Efectivo
+                    <option value="cuentaEfectivoBernardo" disabled={transferData.origen === 'cuentaEfectivoBernardo'}>
+                      💵 Efectivo - Bernardo
                     </option>
-                    <option value="cuentaTransferencia" disabled={transferData.origen === 'cuentaTransferencia'}>
-                      💳 Transferencia
+                    <option value="cuentaEfectivoDaniel" disabled={transferData.origen === 'cuentaEfectivoDaniel'}>
+                      💵 Efectivo - Daniel
+                    </option>
+                    <option value="cuentaTransferenciaBernardo" disabled={transferData.origen === 'cuentaTransferenciaBernardo'}>
+                      💳 Transferencia - Bernardo
+                    </option>
+                    <option value="cuentaTransferenciaDaniel" disabled={transferData.origen === 'cuentaTransferenciaDaniel'}>
+                      💳 Transferencia - Daniel
                     </option>
                     <option value="cuentaPlazoFijo" disabled={transferData.origen === 'cuentaPlazoFijo'}>
                       🏦 Plazo Fijo

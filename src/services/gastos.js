@@ -18,6 +18,26 @@ const gastosCollection = collection(db, "gastos");
 // Crear un nuevo gasto
 export const crearGasto = async (gastoData) => {
   try {
+    // Determinar el ID de cuenta basándose en método de pago y quien realizó el gasto
+    let cuentaId;
+    if (gastoData.metodoPago === 'Efectivo') {
+      cuentaId = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'efectivoBernardo' : 'efectivoDaniel';
+    } else {
+      cuentaId = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'transferenciaBernardo' : 'transferenciaDaniel';
+    }
+    
+    // Verificar saldo antes de crear el gasto
+    const cuenta = await obtenerCuenta(cuentaId);
+    if (!cuenta) {
+      throw new Error("La cuenta no existe");
+    }
+    
+    if (cuenta.saldo < gastoData.monto) {
+      const nombreCuenta = gastoData.metodoPago === 'Efectivo' ? 'efectivo' : 'débito';
+      const propietario = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'Bernardo' : 'Daniel';
+      throw new Error(`Saldo insuficiente en ${nombreCuenta} de ${propietario}. Saldo disponible: $${cuenta.saldo.toLocaleString()}`);
+    }
+    
     const docRef = await addDoc(gastosCollection, {
       ...gastoData,
       fechaCreacion: Timestamp.now()
@@ -25,12 +45,8 @@ export const crearGasto = async (gastoData) => {
 
     // Actualizar el saldo de la cuenta correspondiente (restar el gasto)
     try {
-      const cuentaId = gastoData.metodoPago === 'Efectivo' ? 'efectivo' : 'transferencia';
-      const cuenta = await obtenerCuenta(cuentaId);
-      if (cuenta) {
-        const nuevoSaldo = cuenta.saldo - gastoData.monto;
-        await actualizarSaldoCuenta(cuentaId, nuevoSaldo);
-      }
+      const nuevoSaldo = cuenta.saldo - gastoData.monto;
+      await actualizarSaldoCuenta(cuentaId, nuevoSaldo);
     } catch (error) {
       console.error("Error al actualizar cuenta:", error);
       // No lanzamos el error para no bloquear el registro del gasto
@@ -70,7 +86,13 @@ export const actualizarGasto = async (id, gastoData) => {
       
       // Revertir el gasto anterior (sumar de vuelta a la cuenta)
       try {
-        const cuentaIdAnterior = gastoAnterior.metodoPago === 'Efectivo' ? 'efectivo' : 'transferencia';
+        let cuentaIdAnterior;
+        if (gastoAnterior.metodoPago === 'Efectivo') {
+          cuentaIdAnterior = gastoAnterior.realizadoPor === 'Bernardo Fioramonti' ? 'efectivoBernardo' : 'efectivoDaniel';
+        } else {
+          cuentaIdAnterior = gastoAnterior.realizadoPor === 'Bernardo Fioramonti' ? 'transferenciaBernardo' : 'transferenciaDaniel';
+        }
+        
         const cuentaAnterior = await obtenerCuenta(cuentaIdAnterior);
         if (cuentaAnterior) {
           const saldoRevertido = cuentaAnterior.saldo + gastoAnterior.monto;
@@ -82,14 +104,28 @@ export const actualizarGasto = async (id, gastoData) => {
       
       // Aplicar el nuevo gasto (restar de la cuenta)
       try {
-        const cuentaIdNueva = gastoData.metodoPago === 'Efectivo' ? 'efectivo' : 'transferencia';
+        let cuentaIdNueva;
+        if (gastoData.metodoPago === 'Efectivo') {
+          cuentaIdNueva = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'efectivoBernardo' : 'efectivoDaniel';
+        } else {
+          cuentaIdNueva = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'transferenciaBernardo' : 'transferenciaDaniel';
+        }
+        
         const cuentaNueva = await obtenerCuenta(cuentaIdNueva);
         if (cuentaNueva) {
+          // Verificar saldo antes de aplicar el nuevo gasto
+          if (cuentaNueva.saldo < gastoData.monto) {
+            const nombreCuenta = gastoData.metodoPago === 'Efectivo' ? 'efectivo' : 'débito';
+            const propietario = gastoData.realizadoPor === 'Bernardo Fioramonti' ? 'Bernardo' : 'Daniel';
+            throw new Error(`Saldo insuficiente en ${nombreCuenta} de ${propietario}. Saldo disponible: $${cuentaNueva.saldo.toLocaleString()}`);
+          }
+          
           const nuevoSaldo = cuentaNueva.saldo - gastoData.monto;
           await actualizarSaldoCuenta(cuentaIdNueva, nuevoSaldo);
         }
       } catch (error) {
         console.error("Error al aplicar nuevo gasto:", error);
+        throw error;
       }
     }
     
@@ -114,7 +150,13 @@ export const eliminarGasto = async (id) => {
       
       // Revertir el gasto (sumar de vuelta a la cuenta)
       try {
-        const cuentaId = gasto.metodoPago === 'Efectivo' ? 'efectivo' : 'transferencia';
+        let cuentaId;
+        if (gasto.metodoPago === 'Efectivo') {
+          cuentaId = gasto.realizadoPor === 'Bernardo Fioramonti' ? 'efectivoBernardo' : 'efectivoDaniel';
+        } else {
+          cuentaId = gasto.realizadoPor === 'Bernardo Fioramonti' ? 'transferenciaBernardo' : 'transferenciaDaniel';
+        }
+        
         const cuenta = await obtenerCuenta(cuentaId);
         if (cuenta) {
           const nuevoSaldo = cuenta.saldo + gasto.monto;

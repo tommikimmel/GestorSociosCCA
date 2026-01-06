@@ -30,6 +30,7 @@ export default function Pagos() {
     metodoPago: "efectivo",
     fechaPago: "",
     usarFechaHoy: true,
+    realizadoPor: "",
   });
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function Pagos() {
       metodoPago: "efectivo",
       fechaPago: "",
       usarFechaHoy: true,
+      realizadoPor: "",
     });
   };
 
@@ -113,6 +115,11 @@ export default function Pagos() {
       return;
     }
 
+    if (!formData.realizadoPor) {
+      alert("Debes seleccionar quién realizó el pago");
+      return;
+    }
+
     try {
       const socio = socios.find(s => s.id === formData.socioId);
       const { montoCuota, montoSeguro } = calcularMontos();
@@ -130,6 +137,7 @@ export default function Pagos() {
         montoSeguro,
         metodoPago: formData.metodoPago,
         fechaPago,
+        realizadoPor: formData.realizadoPor,
       });
 
       await cargarDatos();
@@ -250,6 +258,9 @@ export default function Pagos() {
                     Seguro
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Realizado Por
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Método
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -299,6 +310,11 @@ export default function Pagos() {
                       ) : (
                         <span className="text-sm text-gray-400">-</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                        {pago.realizadoPor || "No especificado"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -375,6 +391,25 @@ export default function Pagos() {
                           {socio.apellido}, {socio.nombre}
                         </option>
                       ))}
+                  </select>
+                </div>
+
+                {/* Realizado Por */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Realizado Por *
+                  </label>
+                  <select
+                    name="realizadoPor"
+                    value={formData.realizadoPor}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                  >
+                    <option value="">Seleccione quien realizó el pago...</option>
+                    <option value="Bernardo Fioramonti">Bernardo Fioramonti</option>
+                    <option value="Daniel Carranza">Daniel Carranza</option>
                   </select>
                 </div>
 

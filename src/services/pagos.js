@@ -26,6 +26,7 @@ export async function registrarPago(data) {
     montoSeguro,
     fechaPago,
     metodoPago,
+    realizadoPor,
   } = data;
 
   // Crear el registro del pago
@@ -38,19 +39,26 @@ export async function registrarPago(data) {
     montoSeguro: montoSeguro || 0,
     montoTotal: (montoCuota || 0) + (montoSeguro || 0),
     metodoPago: metodoPago || "efectivo",
+    realizadoPor: realizadoPor || null,
     fechaPago: fechaPago instanceof Date ? Timestamp.fromDate(fechaPago) : Timestamp.now(),
     creadoEn: Timestamp.now(),
   };
 
   await addDoc(pagosRef, pago);
 
-  // Actualizar el saldo de la cuenta correspondiente
+  // Actualizar el saldo de la cuenta correspondiente según quien realizó el pago
   try {
-    const cuentaId = metodoPago === 'efectivo' ? 'efectivo' : 'transferencia';
+    let cuentaId;
+    
+    if (metodoPago === 'efectivo') {
+      cuentaId = realizadoPor === 'Bernardo Fioramonti' ? 'efectivoBernardo' : 'efectivoDaniel';
+    } else {
+      cuentaId = realizadoPor === 'Bernardo Fioramonti' ? 'transferenciaBernardo' : 'transferenciaDaniel';
+    }
+    
     const cuenta = await obtenerCuenta(cuentaId);
     if (cuenta) {
-      const nuevoSaldo = cuenta.saldo + pago.montoTotal;
-      await actualizarSaldoCuenta(cuentaId, nuevoSaldo);
+      await actualizarSaldoCuenta(cuentaId, cuenta.saldo + pago.montoTotal);
     }
   } catch (error) {
     console.error("Error al actualizar cuenta:", error);

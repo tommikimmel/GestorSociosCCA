@@ -16,6 +16,7 @@ import {
 
 const TIPOS_GASTO = ["Luz", "Agua", "Limpieza", "Mantenimiento", "Corte de pasto"];
 const METODOS_PAGO = ["Efectivo", "Transferencia"];
+const REALIZADORES = ["Bernardo Fioramonti", "Daniel Carranza"];
 
 export default function Gastos() {
   const [gastos, setGastos] = useState([]);
@@ -28,7 +29,8 @@ export default function Gastos() {
     detalle: "",
     metodoPago: "",
     monto: "",
-    fechaRealizacion: ""
+    fechaRealizacion: "",
+    realizadoPor: ""
   });
 
   useEffect(() => {
@@ -61,7 +63,8 @@ export default function Gastos() {
       detalle: "",
       metodoPago: "",
       monto: "",
-      fechaRealizacion: ""
+      fechaRealizacion: "",
+      realizadoPor: ""
     });
     setGastoEditando(null);
     setShowModal(false);
@@ -75,7 +78,7 @@ export default function Gastos() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.tipo || !formData.detalle || !formData.metodoPago || !formData.monto || !formData.fechaRealizacion) {
+    if (!formData.tipo || !formData.detalle || !formData.metodoPago || !formData.monto || !formData.fechaRealizacion || !formData.realizadoPor) {
       alert("Por favor complete todos los campos");
       return;
     }
@@ -86,7 +89,8 @@ export default function Gastos() {
         detalle: formData.detalle,
         metodoPago: formData.metodoPago,
         monto: parseFloat(formData.monto),
-        fechaRealizacion: Timestamp.fromDate(new Date(formData.fechaRealizacion))
+        fechaRealizacion: Timestamp.fromDate(new Date(formData.fechaRealizacion)),
+        realizadoPor: formData.realizadoPor
       };
 
       if (gastoEditando) {
@@ -111,7 +115,8 @@ export default function Gastos() {
       detalle: gasto.detalle,
       metodoPago: gasto.metodoPago,
       monto: gasto.monto.toString(),
-      fechaRealizacion: gasto.fechaRealizacion.toDate().toISOString().split('T')[0]
+      fechaRealizacion: gasto.fechaRealizacion.toDate().toISOString().split('T')[0],
+      realizadoPor: gasto.realizadoPor || ""
     });
     setShowModal(true);
   };
@@ -217,6 +222,9 @@ export default function Gastos() {
                     Detalle
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Realizado Por
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Método de Pago
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -243,6 +251,11 @@ export default function Gastos() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {gasto.detalle}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                        {gasto.realizadoPor || "No especificado"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${
@@ -328,6 +341,26 @@ export default function Gastos() {
                     <option value="">Seleccione un tipo...</option>
                     {TIPOS_GASTO.map(tipo => (
                       <option key={tipo} value={tipo}>{tipo}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Realizado Por */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Realizado Por *
+                  </label>
+                  <select
+                    name="realizadoPor"
+                    value={formData.realizadoPor}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                  >
+                    <option value="">Seleccione quien realizó el gasto...</option>
+                    {REALIZADORES.map(realizador => (
+                      <option key={realizador} value={realizador}>{realizador}</option>
                     ))}
                   </select>
                 </div>

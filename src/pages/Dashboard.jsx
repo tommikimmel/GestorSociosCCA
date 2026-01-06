@@ -25,7 +25,9 @@ export default function Dashboard() {
   const [cuentas, setCuentas] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vistaActiva, setVistaActiva] = useState("pagos");
-  const [editandoCuenta, setEditandoCuenta] = useState(null); // "efectivo", "transferencia", "plazoFijo"
+  const [propietarioEfectivo, setPropietarioEfectivo] = useState("Total");
+  const [propietarioTransferencia, setPropietarioTransferencia] = useState("Total");
+  const [editandoCuenta, setEditandoCuenta] = useState(null);
   const [valorTemporal, setValorTemporal] = useState("");
 
   useEffect(() => {
@@ -66,14 +68,38 @@ export default function Dashboard() {
   // Obtener saldos directos de las cuentas (ya incluyen pagos y gastos actualizados automáticamente)
   const calcularCuentas = () => {
     if (!cuentas) {
-      return { efectivo: 0, transferencia: 0, plazoFijo: 0, total: 0 };
+      return { 
+        efectivoBernardo: 0, 
+        efectivoDaniel: 0, 
+        transferenciaBernardo: 0, 
+        transferenciaDaniel: 0, 
+        plazoFijo: 0,
+        totalEfectivo: 0,
+        totalTransferencia: 0,
+        total: 0
+      };
     }
 
-    const efectivo = cuentas.efectivo?.saldo || 0;
-    const transferencia = cuentas.transferencia?.saldo || 0;
+    const efectivoBernardo = cuentas.efectivoBernardo?.saldo || 0;
+    const efectivoDaniel = cuentas.efectivoDaniel?.saldo || 0;
+    const transferenciaBernardo = cuentas.transferenciaBernardo?.saldo || 0;
+    const transferenciaDaniel = cuentas.transferenciaDaniel?.saldo || 0;
     const plazoFijo = cuentas.plazoFijo?.saldo || 0;
 
-    return { efectivo, transferencia, plazoFijo, total: efectivo + transferencia + plazoFijo };
+    const totalEfectivo = efectivoBernardo + efectivoDaniel;
+    const totalTransferencia = transferenciaBernardo + transferenciaDaniel;
+    const total = totalEfectivo + totalTransferencia + plazoFijo;
+
+    return { 
+      efectivoBernardo, 
+      efectivoDaniel, 
+      transferenciaBernardo, 
+      transferenciaDaniel, 
+      plazoFijo,
+      totalEfectivo,
+      totalTransferencia,
+      total 
+    };
   };
 
   // Calcular datos mensuales
@@ -112,10 +138,59 @@ export default function Dashboard() {
       .sort((a, b) => `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`));
   };
 
-  const iniciarEdicionCuenta = (cuenta, valor) => {
-    console.log('Editando cuenta:', cuenta, 'Saldo actual:', valor);
-    setEditandoCuenta(cuenta);
-    setValorTemporal(valor.toString());
+  const cambiarPropietarioEfectivo = () => {
+    setPropietarioEfectivo(prev => {
+      if (prev === "Bernardo") return "Daniel";
+      if (prev === "Daniel") return "Total";
+      return "Bernardo";
+    });
+  };
+
+  const cambiarPropietarioTransferencia = () => {
+    setPropietarioTransferencia(prev => {
+      if (prev === "Bernardo") return "Daniel";
+      if (prev === "Daniel") return "Total";
+      return "Bernardo";
+    });
+  };
+
+  const obtenerSaldoEfectivo = () => {
+    if (propietarioEfectivo === "Bernardo") return saldosCuentas.efectivoBernardo;
+    if (propietarioEfectivo === "Daniel") return saldosCuentas.efectivoDaniel;
+    return saldosCuentas.totalEfectivo;
+  };
+
+  const obtenerSaldoTransferencia = () => {
+    if (propietarioTransferencia === "Bernardo") return saldosCuentas.transferenciaBernardo;
+    if (propietarioTransferencia === "Daniel") return saldosCuentas.transferenciaDaniel;
+    return saldosCuentas.totalTransferencia;
+  };
+
+  const obtenerNombrePropietario = (propietario) => {
+    if (propietario === "Bernardo") return "Bernardo F.";
+    if (propietario === "Daniel") return "Daniel C.";
+    return "Total";
+  };
+
+  const iniciarEdicionCuenta = (tipoCuenta, propietario) => {
+    if (propietario === "Total") return; // No permitir editar el total
+    
+    let cuentaId;
+    let saldo;
+    
+    if (tipoCuenta === "efectivo") {
+      cuentaId = propietario === "Bernardo" ? "efectivoBernardo" : "efectivoDaniel";
+      saldo = propietario === "Bernardo" ? saldosCuentas.efectivoBernardo : saldosCuentas.efectivoDaniel;
+    } else if (tipoCuenta === "transferencia") {
+      cuentaId = propietario === "Bernardo" ? "transferenciaBernardo" : "transferenciaDaniel";
+      saldo = propietario === "Bernardo" ? saldosCuentas.transferenciaBernardo : saldosCuentas.transferenciaDaniel;
+    } else if (tipoCuenta === "plazoFijo") {
+      cuentaId = "plazoFijo";
+      saldo = saldosCuentas.plazoFijo;
+    }
+    
+    setEditandoCuenta(cuentaId);
+    setValorTemporal(saldo.toString());
   };
 
   const cancelarEdicionCuenta = () => {
@@ -134,7 +209,7 @@ export default function Dashboard() {
       await actualizarSaldoCuenta(editandoCuenta, nuevoValor);
       setEditandoCuenta(null);
       setValorTemporal("");
-      cargarDatos(); // Recargar para actualizar todo
+      cargarDatos();
     } catch (error) {
       console.error("Error al guardar cuenta:", error);
       alert("Error al guardar los cambios");
@@ -170,24 +245,27 @@ export default function Dashboard() {
 
       {/* Cuentas Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        {/* Efectivo */}
-        <div 
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => editandoCuenta !== 'efectivo' && iniciarEdicionCuenta('efectivo', cuentas?.efectivo?.saldo || 0)}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-green-50">
-              <Wallet className="w-5 h-5 text-green-600" />
+        {/* Efectivo con Toggle */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-100">
+                <Wallet className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Efectivo</h3>
+                <p className="text-xs text-gray-600">{obtenerNombrePropietario(propietarioEfectivo)}</p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Efectivo</p>
-            {editandoCuenta !== 'efectivo' && (
-              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
-            )}
+            <button
+              onClick={cambiarPropietarioEfectivo}
+              className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+            >
+              Cambiar
+            </button>
           </div>
-          {editandoCuenta === 'efectivo' ? (
-            <>
-            <p className="text-xs text-gray-400 mb-1">Saldo base (actual: {cuentas?.efectivo?.saldo || 0})</p>
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {(editandoCuenta === "efectivoBernardo" || editandoCuenta === "efectivoDaniel") ? (
+            <div className="flex items-center gap-2">
               <input
                 type="number"
                 value={valorTemporal}
@@ -210,28 +288,45 @@ export default function Dashboard() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            </>
           ) : (
-            <p className="text-2xl font-bold text-green-600">{formatearPrecio(saldosCuentas.efectivo)}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold text-green-600">
+                {formatearPrecio(obtenerSaldoEfectivo())}
+              </p>
+              {propietarioEfectivo !== "Total" && (
+                <button
+                  onClick={() => iniciarEdicionCuenta("efectivo", propietarioEfectivo)}
+                  className="p-1 rounded hover:bg-green-50 text-gray-400 hover:text-green-600 transition-colors"
+                  title="Editar saldo"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Transferencia */}
-        <div 
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => editandoCuenta !== 'transferencia' && iniciarEdicionCuenta('transferencia', cuentas?.transferencia?.saldo || 0)}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-blue-50">
-              <CreditCard className="w-5 h-5 text-blue-600" />
+        {/* Débito con Toggle */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Débito</h3>
+                <p className="text-xs text-gray-600">{obtenerNombrePropietario(propietarioTransferencia)}</p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Transferencia</p>
-            {editandoCuenta !== 'transferencia' && (
-              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
-            )}
+            <button
+              onClick={cambiarPropietarioTransferencia}
+              className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+            >
+              Cambiar
+            </button>
           </div>
-          {editandoCuenta === 'transferencia' ? (
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {(editandoCuenta === "transferenciaBernardo" || editandoCuenta === "transferenciaDaniel") ? (
+            <div className="flex items-center gap-2">
               <input
                 type="number"
                 value={valorTemporal}
@@ -255,26 +350,36 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <p className="text-2xl font-bold text-blue-600">{formatearPrecio(saldosCuentas.transferencia)}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold text-blue-600">
+                {formatearPrecio(obtenerSaldoTransferencia())}
+              </p>
+              {propietarioTransferencia !== "Total" && (
+                <button
+                  onClick={() => iniciarEdicionCuenta("transferencia", propietarioTransferencia)}
+                  className="p-1 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Editar saldo"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
         {/* Plazo Fijo */}
-        <div 
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => editandoCuenta !== 'plazoFijo' && iniciarEdicionCuenta('plazoFijo', cuentas?.plazoFijo?.saldo || 0)}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-purple-50">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg bg-purple-100">
               <PiggyBank className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Plazo Fijo</p>
-            {editandoCuenta !== 'plazoFijo' && (
-              <Edit2 className="w-3 h-3 text-gray-400 ml-auto" />
-            )}
+            <div>
+              <h3 className="font-semibold text-gray-800">Plazo Fijo</h3>
+              <p className="text-xs text-gray-600">Compartido</p>
+            </div>
           </div>
-          {editandoCuenta === 'plazoFijo' ? (
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {editandoCuenta === "plazoFijo" ? (
+            <div className="flex items-center gap-2">
               <input
                 type="number"
                 value={valorTemporal}
@@ -298,19 +403,35 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <p className="text-2xl font-bold text-purple-600">{formatearPrecio(saldosCuentas.plazoFijo)}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold text-purple-600">
+                {formatearPrecio(saldosCuentas.plazoFijo)}
+              </p>
+              <button
+                onClick={() => iniciarEdicionCuenta("plazoFijo", "compartido")}
+                className="p-1 rounded hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors"
+                title="Editar saldo"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
 
         {/* Total */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg" style={{backgroundColor: '#e0f7fa'}}>
               <DollarSign className="w-5 h-5" style={{color: '#03a9f4'}} />
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+            <div>
+              <h3 className="font-semibold text-gray-800">Total</h3>
+              <p className="text-xs text-gray-600">Todas las cuentas</p>
+            </div>
           </div>
-          <p className="text-2xl font-bold" style={{color: '#03a9f4'}}>{formatearPrecio(saldosCuentas.total)}</p>
+          <p className="text-2xl font-bold" style={{color: '#03a9f4'}}>
+            {formatearPrecio(saldosCuentas.total)}
+          </p>
         </div>
       </div>
 

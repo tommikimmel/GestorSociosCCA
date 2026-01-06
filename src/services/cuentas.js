@@ -69,9 +69,11 @@ export const actualizarSaldoCuenta = async (cuentaId, nuevoSaldo) => {
 export const inicializarCuentas = async () => {
   try {
     const cuentasDefault = [
-      { id: "efectivo", nombre: "Efectivo", saldo: 0, tipo: "efectivo" },
-      { id: "transferencia", nombre: "Transferencia", saldo: 0, tipo: "transferencia" },
-      { id: "plazoFijo", nombre: "Plazo Fijo", saldo: 0, tipo: "plazoFijo" }
+      { id: "efectivoBernardo", nombre: "Efectivo - Bernardo Fioramonti", saldo: 0, tipo: "efectivo", propietario: "Bernardo Fioramonti" },
+      { id: "efectivoDaniel", nombre: "Efectivo - Daniel Carranza", saldo: 0, tipo: "efectivo", propietario: "Daniel Carranza" },
+      { id: "transferenciaBernardo", nombre: "Transferencia - Bernardo Fioramonti", saldo: 0, tipo: "transferencia", propietario: "Bernardo Fioramonti" },
+      { id: "transferenciaDaniel", nombre: "Transferencia - Daniel Carranza", saldo: 0, tipo: "transferencia", propietario: "Daniel Carranza" },
+      { id: "plazoFijo", nombre: "Plazo Fijo", saldo: 0, tipo: "plazoFijo", propietario: "Compartido" }
     ];
 
     for (const cuenta of cuentasDefault) {
@@ -83,6 +85,7 @@ export const inicializarCuentas = async () => {
           nombre: cuenta.nombre,
           saldo: cuenta.saldo,
           tipo: cuenta.tipo,
+          propietario: cuenta.propietario,
           ultimaModificacion: serverTimestamp()
         });
       }
