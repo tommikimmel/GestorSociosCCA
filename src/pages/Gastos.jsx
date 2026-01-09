@@ -23,6 +23,7 @@ export default function Gastos() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [gastoEditando, setGastoEditando] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     tipo: "",
@@ -78,12 +79,16 @@ export default function Gastos() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (submitting) return;
+    
     if (!formData.tipo || !formData.detalle || !formData.metodoPago || !formData.monto || !formData.fechaRealizacion || !formData.realizadoPor) {
       alert("Por favor complete todos los campos");
       return;
     }
 
     try {
+      setSubmitting(true);
+      
       const gastoData = {
         tipo: formData.tipo,
         detalle: formData.detalle,
@@ -103,8 +108,14 @@ export default function Gastos() {
       
       resetFormulario();
       cargarGastos();
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 1500);
     } catch {
       alert("Error al guardar el gasto");
+      setSubmitting(false);
     }
   };
 
@@ -465,11 +476,12 @@ export default function Gastos() {
                   </button>
                   <button
                     type="submit"
-                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                    disabled={submitting}
+                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{backgroundColor: '#03a9f4'}}
                   >
                     <Save className="w-4 h-4" />
-                    {gastoEditando ? "Actualizar" : "Guardar"}
+                    {submitting ? "Guardando..." : (gastoEditando ? "Actualizar" : "Guardar")}
                   </button>
                 </div>
               </form>

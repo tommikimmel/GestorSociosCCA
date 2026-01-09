@@ -12,6 +12,8 @@ export default function Administracion() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [propietarioEfectivo, setPropietarioEfectivo] = useState("Bernardo");
   const [propietarioTransferencia, setPropietarioTransferencia] = useState("Bernardo");
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [submittingTransfer, setSubmittingTransfer] = useState(false);
   const [transferData, setTransferData] = useState({
     origen: "",
     destino: "",
@@ -52,6 +54,8 @@ export default function Administracion() {
   };
 
   const guardarCambio = async (campo) => {
+    if (savingConfig) return;
+    
     const nuevoValor = parseInt(valorTemporal);
     if (isNaN(nuevoValor) || nuevoValor <= 0) {
       alert("Por favor ingresa un valor numérico válido");
@@ -59,6 +63,7 @@ export default function Administracion() {
     }
 
     try {
+      setSavingConfig(true);
       const nuevaConfig = {
         ...config,
         [campo]: nuevoValor,
@@ -67,9 +72,15 @@ export default function Administracion() {
       setConfig(nuevaConfig);
       setEditando(null);
       setValorTemporal("");
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setSavingConfig(false);
+      }, 1500);
     } catch (error) {
       console.error("Error al guardar configuración:", error);
       alert("Error al guardar los cambios");
+      setSavingConfig(false);
     }
   };
 
@@ -122,6 +133,8 @@ export default function Administracion() {
   const realizarTransferencia = async (e) => {
     e.preventDefault();
 
+    if (submittingTransfer) return;
+
     if (!transferData.origen || !transferData.destino || !transferData.monto) {
       alert("Por favor completa todos los campos");
       return;
@@ -151,18 +164,22 @@ export default function Administracion() {
     const destinoId = mapeoIds[transferData.destino];
 
     try {
+      setSubmittingTransfer(true);
+      
       // Obtener saldos actuales directamente de las cuentas
       const cuentaOrigen = cuentas[origenId];
       const cuentaDestino = cuentas[destinoId];
 
       if (!cuentaOrigen || !cuentaDestino) {
         alert("Error: No se pudieron obtener las cuentas");
+        setSubmittingTransfer(false);
         return;
       }
 
       // Verificar saldo suficiente en la cuenta de origen
       if (cuentaOrigen.saldo < monto) {
         alert(`Saldo insuficiente en ${getNombreCuenta(transferData.origen)}. Saldo disponible: ${formatearPrecio(cuentaOrigen.saldo)}`);
+        setSubmittingTransfer(false);
         return;
       }
 
@@ -172,9 +189,15 @@ export default function Administracion() {
       alert(`Transferencia exitosa: ${formatearPrecio(monto)} de ${getNombreCuenta(transferData.origen)} a ${getNombreCuenta(transferData.destino)}`);
       resetTransferForm();
       cargarDatos(); // Recargar datos para actualizar saldos
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setSubmittingTransfer(false);
+      }, 1500);
     } catch (error) {
       console.error("Error al realizar transferencia:", error);
       alert("Error al realizar la transferencia: " + error.message);
+      setSubmittingTransfer(false);
     }
   };
 
@@ -268,7 +291,8 @@ export default function Administracion() {
                       />
                       <button
                         onClick={() => guardarCambio('cuotaTrimestral')}
-                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200"
+                        disabled={savingConfig}
+                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save className="w-4 h-4" />
                       </button>
@@ -323,7 +347,8 @@ export default function Administracion() {
                       />
                       <button
                         onClick={() => guardarCambio('cuotaMensual')}
-                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200"
+                        disabled={savingConfig}
+                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save className="w-4 h-4" />
                       </button>
@@ -379,7 +404,8 @@ export default function Administracion() {
                       />
                       <button
                         onClick={() => guardarCambio('cuotaMensualVencida')}
-                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200"
+                        disabled={savingConfig}
+                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save className="w-4 h-4" />
                       </button>
@@ -451,7 +477,8 @@ export default function Administracion() {
                       />
                       <button
                         onClick={() => guardarCambio('seguro')}
-                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200"
+                        disabled={savingConfig}
+                        className="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save className="w-4 h-4" />
                       </button>
@@ -534,7 +561,7 @@ export default function Administracion() {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Efectivo con Toggle */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-white">
+            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-green-50 to-white">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-green-100">
@@ -558,7 +585,7 @@ export default function Administracion() {
             </div>
 
             {/* Transferencia con Toggle */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white">
+            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-blue-50 to-white">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-blue-100">
@@ -582,7 +609,7 @@ export default function Administracion() {
             </div>
 
             {/* Plazo Fijo */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-white">
+            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-purple-50 to-white">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 rounded-lg bg-purple-100">
                   <PiggyBank className="w-5 h-5 text-purple-600" />
@@ -608,7 +635,7 @@ export default function Administracion() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
               <span className="text-green-600 font-bold text-sm">15</span>
             </div>
             <div>
@@ -617,7 +644,7 @@ export default function Administracion() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
               <span className="text-orange-600 font-bold text-sm">16+</span>
             </div>
             <div>
@@ -626,7 +653,7 @@ export default function Administracion() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -767,11 +794,12 @@ export default function Administracion() {
                   </button>
                   <button
                     type="submit"
-                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                    disabled={submittingTransfer}
+                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{backgroundColor: '#03a9f4'}}
                   >
                     <ArrowRightLeft className="w-4 h-4" />
-                    Transferir
+                    {submittingTransfer ? "Transfiriendo..." : "Transferir"}
                   </button>
                 </div>
               </form>

@@ -9,7 +9,9 @@ import {
   User,
   Clock,
   Banknote,
-  ArrowRightLeft
+  ArrowRightLeft,
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 import { obtenerPagos, registrarPago } from "../services/pagos";
 import { obtenerSocios } from "../services/socios";
@@ -21,6 +23,7 @@ export default function Pagos() {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -105,6 +108,8 @@ export default function Pagos() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (submitting) return;
+    
     if (!formData.socioId) {
       alert("Debes seleccionar un socio");
       return;
@@ -120,8 +125,34 @@ export default function Pagos() {
       return;
     }
 
+    // Validar lógica de negocio antes de procesar el pago
+    const socio = socios.find(s => s.id === formData.socioId);
+    
+    // Validar pago de cuota
+    if (formData.tipoCuota) {
+      const tieneFechaVencimientoCuota = socio.fechaVencimientoCuota !== null && socio.fechaVencimientoCuota !== undefined;
+      const esDeudorCuota = socio.deudorCuota === true;
+      
+      if (tieneFechaVencimientoCuota && !esDeudorCuota) {
+        alert(`No se puede registrar el pago de cuota.\n\nEl socio ${socio.nombre} ${socio.apellido} ya tiene la cuota al día.\nSolo se pueden registrar pagos de cuota para socios sin datos de cuota o con cuota vencida.`);
+        return;
+      }
+    }
+    
+    // Validar pago de seguro
+    if (formData.tipoSeguro) {
+      const tieneFechaVencimientoSeguro = socio.fechaVencimientoSeguro !== null && socio.fechaVencimientoSeguro !== undefined;
+      const esDeudorSeguro = socio.deudorSeguro === true;
+      
+      if (tieneFechaVencimientoSeguro && !esDeudorSeguro) {
+        alert(`No se puede registrar el pago de seguro.\n\nEl socio ${socio.nombre} ${socio.apellido} ya tiene el seguro al día.\nSolo se pueden registrar pagos de seguro para socios sin datos de seguro o con seguro vencido.`);
+        return;
+      }
+    }
+
     try {
-      const socio = socios.find(s => s.id === formData.socioId);
+      setSubmitting(true);
+      
       const { montoCuota, montoSeguro } = calcularMontos();
       
       const fechaPago = formData.usarFechaHoy 
@@ -143,9 +174,15 @@ export default function Pagos() {
       await cargarDatos();
       setShowModal(false);
       resetForm();
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 1500);
     } catch (error) {
       console.error("Error al registrar pago:", error);
       alert("Error al registrar el pago");
+      setSubmitting(false);
     }
   };
 
@@ -394,6 +431,54 @@ export default function Pagos() {
                   </select>
                 </div>
 
+                {/* Indicador de Estado del Socio */}
+                {formData.socioId && (() => {
+                  const socioSeleccionado = socios.find(s => s.id === formData.socioId);
+                  if (!socioSeleccionado) return null;
+                  
+                  const puedeRegistrarCuota = !socioSeleccionado.fechaVencimientoCuota || socioSeleccionado.deudorCuota;
+                  const puedeRegistrarSeguro = !socioSeleccionado.fechaVencimientoSeguro || socioSeleccionado.deudorSeguro;
+                  
+                  return (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Estado del Socio
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-700">Cuota:</span>
+                          {puedeRegistrarCuota ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="w-3 h-3" />
+                              {!socioSeleccionado.fechaVencimientoCuota ? 'Sin datos - Puede registrar' : 'Vencida - Puede registrar'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              <AlertCircle className="w-3 h-3" />
+                              Al día - No puede registrar
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-700">Seguro:</span>
+                          {puedeRegistrarSeguro ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="w-3 h-3" />
+                              {!socioSeleccionado.fechaVencimientoSeguro ? 'Sin datos - Puede registrar' : 'Vencido - Puede registrar'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              <AlertCircle className="w-3 h-3" />
+                              Al día - No puede registrar
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Realizado Por */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -568,11 +653,12 @@ export default function Pagos() {
                   </button>
                   <button
                     type="submit"
-                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                    disabled={submitting}
+                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{backgroundColor: '#03a9f4'}}
                   >
                     <Save className="w-4 h-4" />
-                    Registrar Pago
+                    {submitting ? "Registrando..." : "Registrar Pago"}
                   </button>
                 </div>
               </form>

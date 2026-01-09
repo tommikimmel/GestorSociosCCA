@@ -12,6 +12,8 @@ import {
   CheckCircle,
   Users
 } from "lucide-react";
+import Alert from "../components/layout/Alert";
+import { useAlert } from "../hooks/useAlert";
 
 export default function Socios() {
   const [socios, setSocios] = useState([]);
@@ -19,6 +21,9 @@ export default function Socios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [togglingState, setTogglingState] = useState(null);
+  const { alert, showSuccess, showError, showWarning, hideAlert } = useAlert();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -70,7 +75,11 @@ export default function Socios() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (submitting) return;
+    
     try {
+      setSubmitting(true);
+      
       if (editingId) {
         // Update existing socio
         const updateData = {
@@ -104,9 +113,27 @@ export default function Socios() {
       await cargarSocios();
       setShowModal(false);
       resetForm();
+      
+      // Mostrar alerta de éxito
+      showSuccess(
+        editingId ? 'Socio actualizado' : 'Socio creado',
+        editingId 
+          ? `Los datos de ${formData.nombre} ${formData.apellido} se actualizaron correctamente`
+          : `${formData.nombre} ${formData.apellido} se agregó correctamente`,
+        3000
+      );
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 1500);
     } catch (error) {
       console.error("Error al guardar socio:", error);
-      alert("Error al guardar el socio. Por favor intenta nuevamente.");
+      showError(
+        'Error al guardar',
+        'No se pudo guardar el socio. Por favor intenta nuevamente.'
+      );
+      setSubmitting(false);
     }
   };
 
@@ -124,11 +151,42 @@ export default function Socios() {
   };
 
   const handleToggleEstado = async (id, estadoActual) => {
+    if (togglingState === id) return;
+    
     try {
+      setTogglingState(id);
+      const socio = socios.find(s => s.id === id);
       await toggleEstadoSocio(id, estadoActual);
       await cargarSocios();
+      
+      // Mostrar alerta warning
+      if (estadoActual) {
+        // Estaba activo, ahora se desactiva
+        showWarning(
+          'Socio desactivado',
+          `${socio.nombre} ${socio.apellido} ha sido desactivado`,
+          4000
+        );
+      } else {
+        // Estaba inactivo, ahora se activa
+        showWarning(
+          'Socio activado',
+          `${socio.nombre} ${socio.apellido} ha sido activado`,
+          4000
+        );
+      }
+      
+      // Cooldown de 1.5 segundos
+      setTimeout(() => {
+        setTogglingState(null);
+      }, 1500);
     } catch (error) {
       console.error("Error al cambiar estado:", error);
+      showError(
+        'Error al cambiar estado',
+        'No se pudo cambiar el estado del socio'
+      );
+      setTogglingState(null);
     }
   };
 
@@ -150,6 +208,16 @@ export default function Socios() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Componente de Alerta */}
+      <Alert
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        show={alert.show}
+        onClose={hideAlert}
+        autoCloseDuration={alert.autoCloseDuration}
+      />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
@@ -289,14 +357,15 @@ export default function Socios() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleToggleEstado(socio.id, socio.activo)}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-sm hover:shadow-md ${
+                        disabled={togglingState === socio.id}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
                           socio.activo
                             ? "bg-green-100 text-green-800 hover:bg-green-200"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                       >
                         <Power className="w-3 h-3" />
-                        {socio.activo ? "Activo" : "Inactivo"}
+                        {togglingState === socio.id ? "Procesando..." : (socio.activo ? "Activo" : "Inactivo")}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -461,11 +530,12 @@ export default function Socios() {
                   </button>
                   <button
                     type="submit"
-                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                    disabled={submitting}
+                    className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{backgroundColor: '#03a9f4'}}
                   >
                     <Save className="w-4 h-4" />
-                    {editingId ? "Actualizar" : "Crear"}
+                    {submitting ? "Guardando..." : (editingId ? "Actualizar" : "Crear")}
                   </button>
                 </div>
               </form>
