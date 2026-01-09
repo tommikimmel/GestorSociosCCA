@@ -312,7 +312,7 @@ export default function Socios() {
                   <tr key={socio.id} className={!socio.activo ? "bg-gray-50 opacity-75" : ""}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
+                        <div className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
                           <span className="font-semibold text-sm" style={{color: '#03a9f4'}}>
                             {socio.nombre.charAt(0)}{socio.apellido.charAt(0)}
                           </span>

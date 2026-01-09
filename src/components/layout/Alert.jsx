@@ -98,7 +98,7 @@ export default function Alert({
         <div className="p-4">
           <div className="flex items-start gap-3">
             {/* Icono */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Icon className={`w-6 h-6 ${config.iconColor}`} />
             </div>
 
@@ -119,7 +119,7 @@ export default function Alert({
             {/* Botón cerrar */}
             <button
               onClick={handleClose}
-              className={`flex-shrink-0 p-1 rounded-lg transition-colors ${config.closeHoverColor}`}
+              className={`shrink-0 p-1 rounded-lg transition-colors ${config.closeHoverColor}`}
               aria-label="Cerrar alerta"
             >
               <X className={`w-5 h-5 ${config.iconColor}`} />
