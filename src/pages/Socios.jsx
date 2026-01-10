@@ -358,15 +358,23 @@ export default function Socios() {
                       <button
                         onClick={() => handleToggleEstado(socio.id, socio.activo)}
                         disabled={togglingState === socio.id}
-                        className={`inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed ${
                           socio.activo
-                            ? "bg-green-50 border-green-500 hover:bg-green-100"
-                            : "bg-gray-100 border-gray-300 hover:bg-gray-200"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                         title={togglingState === socio.id ? "Procesando..." : (socio.activo ? "Activo - Click para desactivar" : "Inactivo - Click para activar")}
                       >
-                        {socio.activo && (
-                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
+                        {socio.activo ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Activo</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Inactivo</span>
+                          </>
                         )}
                       </button>
                     </td>

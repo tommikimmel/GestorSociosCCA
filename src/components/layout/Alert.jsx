@@ -88,29 +88,29 @@ export default function Alert({
 
   return (
     <div 
-      className={`fixed top-4 right-4 z-50 max-w-md w-full transform transition-all duration-300 ease-in-out ${
+      className={`fixed top-4 right-4 z-50 max-w-md w-full sm:w-full px-4 sm:px-0 transform transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
       <div 
         className={`${config.bgColor} ${config.borderColor} border-2 rounded-xl shadow-lg overflow-hidden`}
       >
-        <div className="p-4">
-          <div className="flex items-start gap-3">
+        <div className="p-3 sm:p-4">
+          <div className="flex items-start gap-2 sm:gap-3">
             {/* Icono */}
             <div className="shrink-0">
-              <Icon className={`w-6 h-6 ${config.iconColor}`} />
+              <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${config.iconColor}`} />
             </div>
 
             {/* Contenido */}
             <div className="flex-1 min-w-0">
               {title && (
-                <h3 className={`text-sm font-semibold ${config.titleColor} mb-1`}>
+                <h3 className={`text-xs sm:text-sm font-semibold ${config.titleColor} mb-1`}>
                   {title}
                 </h3>
               )}
               {message && (
-                <p className={`text-sm ${config.messageColor}`}>
+                <p className={`text-xs sm:text-sm ${config.messageColor}`}>
                   {message}
                 </p>
               )}
@@ -122,7 +122,7 @@ export default function Alert({
               className={`shrink-0 p-1 rounded-lg transition-colors ${config.closeHoverColor}`}
               aria-label="Cerrar alerta"
             >
-              <X className={`w-5 h-5 ${config.iconColor}`} />
+              <X className={`w-4 h-4 sm:w-5 sm:h-5 ${config.iconColor}`} />
             </button>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { login, register } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 import logoCCA from "../assets/logoCCA.svg";
+import Alert from "../components/layout/Alert";
+import { useAlert } from "../hooks/useAlert";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -10,22 +12,57 @@ export default function Auth() {
   const [apellido, setApellido] = useState("");
   const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
+  const { alert, showError, closeAlert } = useAlert();
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (isRegister) {
-      await register(email, password, nombre, apellido);
-    } else {
-      await login(email, password);
-    }
+    try {
+      if (isRegister) {
+        await register(email, password, nombre, apellido);
+      } else {
+        await login(email, password);
+      }
 
-    // SIEMPRE va al dashboard
-    navigate("/");
+      // SIEMPRE va al dashboard
+      navigate("/");
+    } catch (error) {
+      // Manejar errores de autenticación
+      let errorMessage = "Error al autenticar";
+      
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+        errorMessage = "Email o contraseña incorrectos";
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = "No existe una cuenta con este email";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "El formato del email es inválido";
+      } else if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Este email ya está registrado";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Demasiados intentos fallidos. Intentá más tarde";
+      }
+      
+      showError(
+        "Error de autenticación",
+        errorMessage,
+        5000
+      );
+    }
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 pt-32 sm:pt-32">
+      {/* Alert Component */}
+      <Alert 
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        show={alert.show}
+        onClose={closeAlert}
+        autoCloseDuration={alert.autoCloseDuration}
+      />
       {/* Logo y título */}
       <div className="absolute top-4 sm:top-8 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 z-10">
         <img 
