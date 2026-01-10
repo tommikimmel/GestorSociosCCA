@@ -176,18 +176,18 @@ export default function Gastos() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <TrendingDown className="w-8 h-8" style={{color: '#03a9f4'}} />
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <TrendingDown className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Gastos
         </h1>
-        <p className="text-gray-600">Administra los gastos del club</p>
+        <p className="text-sm sm:text-base text-gray-600">Administra los gastos del club</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Gastos</p>
           <p className="text-2xl font-bold text-red-600">{formatearMonto(calcularTotal())}</p>
@@ -202,11 +202,11 @@ export default function Gastos() {
       <div className="mb-6">
         <button
           onClick={openCreateModal}
-          className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+          className="w-full text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
           style={{backgroundColor: '#03a9f4'}}
         >
           <Plus className="w-5 h-5" />
-          Registrar Gasto
+          <span>Registrar Gasto</span>
         </button>
       </div>
 
@@ -223,25 +223,25 @@ export default function Gastos() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Detalle
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Realizado Por
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Método de Pago
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Monto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -249,26 +249,26 @@ export default function Gastos() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {gastos.map((gasto) => (
                   <tr key={gasto.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         {formatearFecha(gasto.fechaRealizacion)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm">
+                      <span className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                         {gasto.tipo}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
+                    <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-700">
                       {gasto.detalle}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm">
                       <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                         {gasto.realizadoPor || "No especificado"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${
                         gasto.metodoPago === 'Efectivo' 
                           ? 'bg-green-100 text-green-800' 
@@ -278,11 +278,11 @@ export default function Gastos() {
                         {gasto.metodoPago}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-semibold text-gray-900">
                       {formatearMonto(gasto.monto)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           onClick={() => handleEditar(gasto)}
                           className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition"

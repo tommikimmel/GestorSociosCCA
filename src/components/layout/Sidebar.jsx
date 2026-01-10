@@ -34,13 +34,21 @@ const links = [
 export default function Sidebar({ isOpen, setIsOpen }) {
 return (
     <>
+    {/* Overlay para cerrar sidebar en móvil */}
+    {isOpen && (
+      <div 
+        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        onClick={() => setIsOpen(false)}
+      />
+    )}
+
     {/* Botón toggle */}
     <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 z-50 p-2 rounded-lg bg-white shadow-lg transition-all hover:shadow-xl"
         style={{
             color: '#03a9f4',
-            left: isOpen ? '272px' : '16px'
+            left: isOpen ? (window.innerWidth >= 1024 ? '272px' : '16px') : '16px'
         }}
         aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}>
         {isOpen ? (
@@ -52,7 +60,7 @@ return (
 
       {/* Sidebar */}
     <aside 
-        className={`h-screen w-64 bg-white shadow-xl fixed left-0 top-0 transition-transform duration-300 ease-in-out ${
+        className={`h-screen w-64 bg-white shadow-xl fixed left-0 top-0 transition-transform duration-300 ease-in-out z-40 ${
             isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >

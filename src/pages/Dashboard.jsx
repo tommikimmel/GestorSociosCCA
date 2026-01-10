@@ -233,18 +233,18 @@ export default function Dashboard() {
   const deudores = obtenerDeudores();
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <BarChart3 className="w-8 h-8" style={{color: '#03a9f4'}} />
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Dashboard
         </h1>
-        <p className="text-gray-600">Resumen general del club</p>
+        <p className="text-sm sm:text-base text-gray-600">Resumen general del club</p>
       </div>
 
       {/* Cuentas Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
         {/* Efectivo con Toggle */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
@@ -440,11 +440,11 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Gráfico Mensual</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">Gráfico Mensual</h2>
               <div className="flex gap-2">
                 <button
                   onClick={() => setVistaActiva('pagos')}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
+                  className={`px-2 sm:px-4 py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm font-medium transition-all ${
                     vistaActiva === 'pagos'
                       ? 'text-white shadow-md'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -452,18 +452,18 @@ export default function Dashboard() {
                   style={vistaActiva === 'pagos' ? {backgroundColor: '#03a9f4'} : {}}
                 >
                   <TrendingUp className="w-4 h-4" />
-                  Pagos
+                  <span className="hidden sm:inline">Pagos</span>
                 </button>
                 <button
                   onClick={() => setVistaActiva('gastos')}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
+                  className={`px-2 sm:px-4 py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm font-medium transition-all ${
                     vistaActiva === 'gastos'
                       ? 'bg-red-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <TrendingDown className="w-4 h-4" />
-                  Gastos
+                  <span className="hidden sm:inline">Gastos</span>
                 </button>
               </div>
             </div>
@@ -475,12 +475,12 @@ export default function Dashboard() {
                 <p>No hay {vistaActiva === 'pagos' ? 'pagos' : 'gastos'} registrados este año</p>
               </div>
             ) : (
-              <div className="h-96">
-                <div className="flex items-end justify-around gap-1 h-80 border-b-2 border-l-2 border-gray-300 px-2">
+              <div className="h-72 sm:h-96 w-full overflow-hidden">
+                <div className="flex items-end justify-between gap-0.5 sm:gap-1 h-48 sm:h-80 border-b-2 border-l-2 border-gray-300 px-1 sm:px-2">
                   {datosMensuales.map((dato, index) => (
-                    <div key={index} className="flex flex-col items-center flex-1 h-full justify-end">
+                    <div key={index} className="flex flex-col items-center h-full justify-end w-[6%]">
                       {dato.monto > 0 && (
-                        <span className="text-xs font-semibold text-gray-700 mb-1">
+                        <span className="text-[11px] sm:text-xs font-semibold text-gray-700 mb-1 whitespace-nowrap">
                           {formatearPrecio(dato.monto)}
                         </span>
                       )}
@@ -496,10 +496,10 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-around gap-1 mt-2 px-2">
+                <div className="flex justify-between gap-0.5 sm:gap-1 mt-4 px-1 sm:px-2 h-12">
                   {datosMensuales.map((dato, index) => (
-                    <div key={index} className="flex-1 text-center">
-                      <span className="text-xs font-medium text-gray-600">{dato.mes}</span>
+                    <div key={index} className="flex justify-start items-start w-[6%]">
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 transform rotate-45 origin-top-left whitespace-nowrap">{dato.mes}</span>
                     </div>
                   ))}
                 </div>
@@ -522,7 +522,7 @@ export default function Dashboard() {
                 <p className="text-sm">No hay deudores</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+              <div className="space-y-2 max-h-125 overflow-y-auto">
                 {deudores.map((socio) => (
                   <div
                     key={socio.id}

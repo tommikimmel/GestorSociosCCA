@@ -207,7 +207,7 @@ export default function Socios() {
   const deudoresSeguro = socios.filter(s => s.deudorSeguro).length;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Componente de Alerta */}
       <Alert
         type={alert.type}
@@ -219,16 +219,16 @@ export default function Socios() {
       />
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <Users className="w-8 h-8" style={{color: '#03a9f4'}} />
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <Users className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Socios
         </h1>
-        <p className="text-gray-600">Administra todos los socios del club</p>
+        <p className="text-sm sm:text-base text-gray-600">Administra todos los socios del club</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total</p>
           <p className="text-3xl font-bold" style={{color: '#03a9f4'}}>{socios.length}</p>
@@ -262,11 +262,11 @@ export default function Socios() {
         </div>
         <button
           onClick={openCreateModal}
-          className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+          className="text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all justify-center sm:justify-start"
           style={{backgroundColor: '#03a9f4'}}
         >
           <UserPlus className="w-5 h-5" />
-          Nuevo Socio
+          <span className="hidden sm:inline">Nuevo Socio</span>
         </button>
       </div>
 
@@ -290,19 +290,19 @@ export default function Socios() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Socio
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado Cuota
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado Seguro
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -310,21 +310,21 @@ export default function Socios() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredSocios.map((socio) => (
                   <tr key={socio.id} className={!socio.activo ? "bg-gray-50 opacity-75" : ""}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
-                          <span className="font-semibold text-sm" style={{color: '#03a9f4'}}>
+                        <div className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
+                          <span className="font-semibold text-xs sm:text-sm" style={{color: '#03a9f4'}}>
                             {socio.nombre.charAt(0)}{socio.apellido.charAt(0)}
                           </span>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                        <div className="ml-2 sm:ml-4">
+                          <div className="text-xs sm:text-sm font-medium text-gray-900">
                             {socio.nombre} {socio.apellido}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                       {socio.deudorCuota ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                           <AlertCircle className="w-3 h-3" />
@@ -339,7 +339,7 @@ export default function Socios() {
                         <span className="text-xs text-gray-500">Sin datos</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                       {socio.deudorSeguro ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <AlertCircle className="w-3 h-3" />
@@ -354,28 +354,30 @@ export default function Socios() {
                         <span className="text-xs text-gray-500">Sin datos</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-center">
                       <button
                         onClick={() => handleToggleEstado(socio.id, socio.activo)}
                         disabled={togglingState === socio.id}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 ${
                           socio.activo
-                            ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            ? "bg-green-50 border-green-500 hover:bg-green-100"
+                            : "bg-gray-100 border-gray-300 hover:bg-gray-200"
                         }`}
+                        title={togglingState === socio.id ? "Procesando..." : (socio.activo ? "Activo - Click para desactivar" : "Inactivo - Click para activar")}
                       >
-                        <Power className="w-3 h-3" />
-                        {togglingState === socio.id ? "Procesando..." : (socio.activo ? "Activo" : "Inactivo")}
+                        {socio.activo && (
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
+                        )}
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEdit(socio)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                         style={{color: '#03a9f4'}}
                       >
                         <Edit className="w-4 h-4" />
-                        Editar
+                        <span className="hidden sm:inline">Editar</span>
                       </button>
                     </td>
                   </tr>

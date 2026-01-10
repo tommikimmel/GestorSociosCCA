@@ -223,18 +223,18 @@ export default function Pagos() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <CreditCard className="w-8 h-8" style={{color: '#03a9f4'}} />
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <CreditCard className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Pagos
         </h1>
-        <p className="text-gray-600">Registra y consulta los pagos de cuotas y seguros</p>
+        <p className="text-sm sm:text-base text-gray-600">Registra y consulta los pagos de cuotas y seguros</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Pagos</p>
           <p className="text-3xl font-bold" style={{color: '#03a9f4'}}>{pagos.length}</p>
@@ -261,11 +261,11 @@ export default function Pagos() {
       <div className="mb-6">
         <button
           onClick={openCreateModal}
-          className="text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+          className="w-full text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
           style={{backgroundColor: '#03a9f4'}}
         >
           <Plus className="w-5 h-5" />
-          Registrar Pago
+          <span>Registrar Pago</span>
         </button>
       </div>
 
@@ -282,25 +282,28 @@ export default function Pagos() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Socio
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tipo
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cuota
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Seguro
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Realizado Por
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Método
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total
                   </th>
                 </tr>
@@ -308,25 +311,42 @@ export default function Pagos() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {pagos.map((pago) => (
                   <tr key={pago.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-sm text-gray-900">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         {formatearFecha(pago.fechaPago)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
                           <User className="w-4 h-4" style={{color: '#03a9f4'}} />
                         </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">
+                        <div className="ml-2 sm:ml-3">
+                          <div className="text-xs sm:text-sm font-medium text-gray-900">
                             {pago.socioNombre}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-1">
+                        {pago.tipoCuota && (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                            Cuota
+                          </span>
+                        )}
+                        {pago.tipoSeguro && (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                            Seguro
+                          </span>
+                        )}
+                        {!pago.tipoCuota && !pago.tipoSeguro && (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                       {pago.tipoCuota ? (
                         <div className="text-sm">
                           <div className="font-medium text-gray-900 capitalize">
@@ -338,7 +358,7 @@ export default function Pagos() {
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                       {pago.tipoSeguro ? (
                         <div className="text-sm">
                           <div className="font-medium text-gray-900 capitalize">{pago.tipoSeguro}</div>
@@ -348,12 +368,12 @@ export default function Pagos() {
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                       <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                         {pago.realizadoPor || "No especificado"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
                         pago.metodoPago === 'efectivo' 
                           ? 'bg-green-100 text-green-800' 
@@ -366,7 +386,7 @@ export default function Pagos() {
                         )}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-sm font-bold" style={{color: '#03a9f4'}}>
                         {formatearPrecio(pago.montoTotal)}
                       </div>

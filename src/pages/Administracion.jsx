@@ -238,21 +238,21 @@ export default function Administracion() {
 
   
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <Settings className="w-8 h-8" style={{color: '#03a9f4'}} />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <Settings className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
               Administración
             </h1>
-            <p className="text-gray-600">Configuración de pagos y cuotas del club</p>
+            <p className="text-sm sm:text-base text-gray-600">Configuración de pagos y cuotas del club</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Cuotas Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="border-b border-gray-200 p-6">
@@ -267,18 +267,18 @@ export default function Administracion() {
             </div>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-6">
             {/* Cuota Trimestral */}
-            <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" style={{color: '#03a9f4'}} />
+            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-5 h-5" style={{color: '#03a9f4'}} />
                     Cuota Trimestral
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">Pago cada 3 meses</p>
                 </div>
-                <div className="text-right flex items-center gap-2">
+                <p className="text-sm text-gray-500 mb-3">Pago cada 3 meses</p>
+                <div className="flex items-center gap-2">
                   {editando === 'cuotaTrimestral' ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -310,7 +310,7 @@ export default function Administracion() {
                       </p>
                       <button
                         onClick={() => iniciarEdicion('cuotaTrimestral', config.cuotaTrimestral)}
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -318,24 +318,24 @@ export default function Administracion() {
                   )}
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-600">
-                  💰 Ahorro de {formatearPrecio(config.cuotaMensual * 3 - config.cuotaTrimestral)} vs pago mensual
+              <div className="mt-5 pt-4 border-t-2 border-gray-100 bg-linear-to-r from-blue-50/50 to-transparent rounded-b-lg -mx-6 -mb-6 px-6 py-4">
+                <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="text-lg">💰</span> Ahorro de {formatearPrecio(config.cuotaMensual * 3 - config.cuotaTrimestral)} vs pago mensual
                 </p>
               </div>
             </div>
 
             {/* Cuota Mensual */}
-            <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-green-600" />
+            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-green-600" />
                     Cuota Mensual
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">Hasta el día 15 de cada mes</p>
                 </div>
-                <div className="text-right flex items-center gap-2">
+                <p className="text-sm text-gray-500 mb-3">Hasta el día 15 de cada mes</p>
+                <div className="flex items-center gap-2">
                   {editando === 'cuotaMensual' ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -366,7 +366,7 @@ export default function Administracion() {
                       </p>
                       <button
                         onClick={() => iniciarEdicion('cuotaMensual', config.cuotaMensual)}
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -374,8 +374,8 @@ export default function Administracion() {
                   )}
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-1 text-xs text-green-600">
+              <div className="mt-5 pt-4 border-t-2 border-gray-100 bg-linear-to-r from-green-50/50 to-transparent rounded-b-lg -mx-6 -mb-6 px-6 py-4">
+                <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
                   <AlertCircle className="w-3 h-3" />
                   Precio regular si se paga antes del día 15
                 </div>
@@ -537,29 +537,27 @@ export default function Administracion() {
       {/* Transferencias entre Cuentas */}
       <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="border-b border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-purple-100">
-                <ArrowRightLeft className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Transferencias entre Cuentas</h2>
-                <p className="text-sm text-gray-500">Mueve dinero entre efectivo, transferencia y plazo fijo</p>
-              </div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-purple-100">
+              <ArrowRightLeft className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             </div>
-            <button
-              onClick={() => setShowTransferModal(true)}
-              className="text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
-              style={{backgroundColor: '#03a9f4'}}
-            >
-              <ArrowRightLeft className="w-4 h-4" />
-              Nueva Transferencia
-            </button>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">Transferencias entre Cuentas</h2>
+              <p className="text-xs sm:text-sm text-gray-500">Mueve dinero entre cuentas</p>
+            </div>
           </div>
+          <button
+            onClick={() => setShowTransferModal(true)}
+            className="w-full text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+            style={{backgroundColor: '#03a9f4'}}
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            Nueva Transferencia
+          </button>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Efectivo con Toggle */}
             <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-green-50 to-white">
               <div className="flex items-center justify-between mb-3">
@@ -633,7 +631,7 @@ export default function Administracion() {
           <Calendar className="w-5 h-5" style={{color: '#03a9f4'}} />
           Fechas Importantes
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
               <span className="text-green-600 font-bold text-sm">15</span>
@@ -675,10 +673,10 @@ export default function Administracion() {
           }}
         >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  <ArrowRightLeft className="w-6 h-6" style={{color: '#03a9f4'}} />
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <ArrowRightLeft className="w-5 h-5 sm:w-6 sm:h-6" style={{color: '#03a9f4'}} />
                   Transferir Dinero
                 </h2>
                 <button
