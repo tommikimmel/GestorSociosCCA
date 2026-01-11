@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Alert from "../components/layout/Alert";
 import { useAlert } from "../hooks/useAlert";
+import { motion } from "framer-motion";
 
 export default function Socios() {
   const [socios, setSocios] = useState([]);
@@ -207,7 +208,12 @@ export default function Socios() {
   const deudoresSeguro = socios.filter(s => s.deudorSeguro).length;
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 max-w-7xl mx-auto"
+    >
       {/* Componente de Alerta */}
       <Alert
         type={alert.type}
@@ -219,16 +225,26 @@ export default function Socios() {
       />
 
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
           <Users className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Socios
         </h1>
         <p className="text-sm sm:text-base text-gray-600">Administra todos los socios del club</p>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
+      >
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total</p>
           <p className="text-3xl font-bold" style={{color: '#03a9f4'}}>{socios.length}</p>
@@ -245,7 +261,7 @@ export default function Socios() {
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deuda Seguro</p>
           <p className="text-3xl font-bold text-red-600">{deudoresSeguro}</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Search and Actions */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -553,6 +569,6 @@ export default function Socios() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

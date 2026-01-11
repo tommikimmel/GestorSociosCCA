@@ -1,11 +1,22 @@
 import { Link } from 'react-router-dom';
 import logoCCA from '../assets/logoCCA.svg';
+import { motion } from 'framer-motion';
 
 export default function NotFound() {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 pt-24">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 pt-24"
+        >
             {/* Logo y título */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
+            <motion.div 
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="absolute top-8 left-1/2 transform -translate-x-1/2 flex items-center gap-3"
+            >
                 <img 
                     src={logoCCA} 
                     alt="Logo CCA" 
@@ -19,10 +30,15 @@ export default function NotFound() {
                         Gestión de Socios
                     </p>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Contenedor principal */}
-            <div className="max-w-md w-full">
+            <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="max-w-md w-full"
+            >
                 <div className="bg-white rounded-xl shadow-lg p-10 text-center">
                     {/* Icono 404 */}
                     <div className="mb-6">
@@ -39,17 +55,22 @@ export default function NotFound() {
                         Parece que has volado fuera del curso. Esta página no existe en nuestro espacio aéreo.
                     </p>
                     
-                    <Link 
-                        to="/" 
-                        className="inline-block w-full text-white font-medium py-2.5 px-6 rounded-lg transition-colors"
-                        style={{backgroundColor: '#03a9f4'}}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#0288d1'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = '#03a9f4'}
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                     >
-                        Volver al Inicio
-                    </Link>
+                        <Link 
+                            to="/" 
+                            className="inline-block w-full text-white font-medium py-2.5 px-6 rounded-lg transition-colors"
+                            style={{backgroundColor: '#03a9f4'}}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#0288d1'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = '#03a9f4'}
+                        >
+                            Volver al Inicio
+                        </Link>
+                    </motion.div>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 } 

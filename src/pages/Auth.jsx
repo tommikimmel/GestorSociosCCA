@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import logoCCA from "../assets/logoCCA.svg";
 import Alert from "../components/layout/Alert";
 import { useAlert } from "../hooks/useAlert";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -127,7 +128,12 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 pt-32 sm:pt-32">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 pt-32 sm:pt-32"
+    >
       {/* Alert Component */}
       <Alert 
         type={alert.type}
@@ -139,9 +145,20 @@ export default function Auth() {
       />
 
       {/* Mensaje de verificación de email */}
+      <AnimatePresence>
       {needsVerification && (
-        <div className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full animate-[fadeIn_0.3s_ease-in-out]">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        >
+          <motion.div 
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+            className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full"
+          >
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                 <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,14 +195,26 @@ export default function Auth() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
       
       {/* Modal de Recuperación de Contraseña */}
+      <AnimatePresence>
       {showForgotPassword && (
-        <div className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full animate-[fadeIn_0.3s_ease-in-out]">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        >
+          <motion.div 
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+            className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full"
+          >
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
                 <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,12 +268,18 @@ export default function Auth() {
                 </div>
               </form>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
       
       {/* Logo y título */}
-      <div className="absolute top-4 sm:top-8 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 z-10">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="absolute top-4 sm:top-8 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 z-10"
+      >
         <img 
           src={logoCCA} 
           alt="Logo CCA" 
@@ -258,10 +293,15 @@ export default function Auth() {
             Gestión de Socios
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Vista Mobile - Un solo formulario con toggle */}
-      <div className="sm:hidden w-full max-w-md mt-4">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="sm:hidden w-full max-w-md mt-4"
+      >
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Botones Toggle */}
           <div className="flex border-b border-gray-200">
@@ -408,13 +448,19 @@ export default function Auth() {
             </form>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Vista Desktop - Dos tarjetas lado a lado */}
-      <div className="hidden sm:flex gap-4 sm:gap-6 max-w-4xl w-full">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="hidden sm:flex gap-4 sm:gap-6 max-w-4xl w-full"
+      >
         {/* Tarjeta de Login */}
-        <div 
+        <motion.div 
           onClick={() => setIsRegister(false)}
+          whileHover={{ scale: isRegister ? 1.02 : 1 }}
           className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-6 sm:p-8 cursor-pointer transition-all duration-500 min-h-75 sm:min-h-105 ${
             !isRegister 
               ? 'ring-2 sm:scale-105' 
@@ -509,11 +555,12 @@ export default function Auth() {
               <p className="text-sm">Hacé click aquí para iniciar sesión</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Tarjeta de Registro */}
-        <div 
+        <motion.div 
           onClick={() => setIsRegister(true)}
+          whileHover={{ scale: !isRegister ? 1.02 : 1 }}
           className={`flex flex-col flex-1 bg-white rounded-xl shadow-lg p-6 sm:p-8 cursor-pointer transition-all duration-500 min-h-75 sm:min-h-105 ${
             isRegister 
               ? 'ring-2 sm:scale-105' 
@@ -629,8 +676,8 @@ export default function Auth() {
               <p className="text-sm">Hacé click aquí para registrarte</p>
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <style>{`
         @keyframes fadeIn {
@@ -644,6 +691,6 @@ export default function Auth() {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

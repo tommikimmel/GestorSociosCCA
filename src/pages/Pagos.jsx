@@ -16,6 +16,7 @@ import {
 import { obtenerPagos, registrarPago } from "../services/pagos";
 import { obtenerSocios } from "../services/socios";
 import { obtenerConfiguracion } from "../services/configuracion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Pagos() {
   const [pagos, setPagos] = useState([]);
@@ -223,18 +224,33 @@ export default function Pagos() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 max-w-7xl mx-auto"
+    >
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
           <CreditCard className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Pagos
         </h1>
         <p className="text-sm sm:text-base text-gray-600">Registra y consulta los pagos de cuotas y seguros</p>
-      </div>
+      </motion.div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6"
+      >
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Pagos</p>
           <p className="text-3xl font-bold" style={{color: '#03a9f4'}}>{pagos.length}</p>
@@ -255,7 +271,7 @@ export default function Pagos() {
             {formatearPrecio(pagos.reduce((sum, p) => sum + (p.montoTotal || 0), 0))}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Action Button */}
       <div className="mb-6">
@@ -686,6 +702,6 @@ export default function Pagos() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

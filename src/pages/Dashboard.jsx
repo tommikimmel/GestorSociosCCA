@@ -17,6 +17,7 @@ import {
   Save,
   X
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const [pagos, setPagos] = useState([]);
@@ -233,18 +234,33 @@ export default function Dashboard() {
   const deudores = obtenerDeudores();
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 max-w-7xl mx-auto"
+    >
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Dashboard
         </h1>
         <p className="text-sm sm:text-base text-gray-600">Resumen general del club</p>
-      </div>
+      </motion.div>
 
       {/* Cuentas Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6"
+      >
         {/* Efectivo con Toggle */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
@@ -433,9 +449,14 @@ export default function Dashboard() {
             {formatearPrecio(saldosCuentas.total)}
           </p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <motion.div 
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
         {/* Gráfico Mensual */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-lg p-6">
@@ -553,7 +574,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

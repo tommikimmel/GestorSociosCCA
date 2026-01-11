@@ -13,6 +13,7 @@ import {
   CreditCard,
   TrendingDown
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TIPOS_GASTO = ["Luz", "Agua", "Limpieza", "Mantenimiento", "Corte de pasto"];
 const METODOS_PAGO = ["Efectivo", "Transferencia"];
@@ -176,18 +177,33 @@ export default function Gastos() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 max-w-7xl mx-auto"
+    >
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
           <TrendingDown className="w-6 h-6 sm:w-8 sm:h-8" style={{color: '#03a9f4'}} />
           Gestión de Gastos
         </h1>
         <p className="text-sm sm:text-base text-gray-600">Administra los gastos del club</p>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-2 gap-3 mb-6"
+      >
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Gastos</p>
           <p className="text-2xl font-bold text-red-600">{formatearMonto(calcularTotal())}</p>
@@ -196,10 +212,15 @@ export default function Gastos() {
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Cantidad</p>
           <p className="text-3xl font-bold" style={{color: '#03a9f4'}}>{gastos.length}</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Action Button */}
-      <div className="mb-6">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="mb-6"
+      >
         <button
           onClick={openCreateModal}
           className="w-full text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
@@ -208,7 +229,7 @@ export default function Gastos() {
           <Plus className="w-5 h-5" />
           <span>Registrar Gasto</span>
         </button>
-      </div>
+      </motion.div>
 
       {/* Gastos Table */}
       {gastos.length === 0 ? (
@@ -489,6 +510,6 @@ export default function Gastos() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

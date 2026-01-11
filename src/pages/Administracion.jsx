@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Settings, DollarSign, Calendar, AlertCircle, Shield, Edit2, Save, X, ArrowRightLeft, Wallet, CreditCard, PiggyBank } from "lucide-react";
 import { obtenerConfiguracion, actualizarConfiguracion } from "../services/configuracion";
 import { obtenerCuentas, realizarTransferencia as realizarTransferenciaCuentas, inicializarCuentas } from "../services/cuentas";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Administracion() {
   const [config, setConfig] = useState(null); 
@@ -238,9 +239,19 @@ export default function Administracion() {
 
   
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 max-w-7xl mx-auto"
+    >
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
@@ -250,11 +261,16 @@ export default function Administracion() {
             <p className="text-sm sm:text-base text-gray-600">Configuración de pagos y cuotas del club</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Cuotas Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <motion.div 
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200"
+        >
           <div className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{backgroundColor: '#e0f7fa'}}>
@@ -269,7 +285,13 @@ export default function Administracion() {
 
           <div className="p-6 space-y-6">
             {/* Cuota Trimestral */}
-            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              whileHover={{ scale: 1.02 }}
+              className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -323,10 +345,16 @@ export default function Administracion() {
                   <span className="text-lg">💰</span> Ahorro de {formatearPrecio(config.cuotaMensual * 3 - config.cuotaTrimestral)} vs pago mensual
                 </p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cuota Mensual */}
-            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              whileHover={{ scale: 1.02 }}
+              className="border-2 border-gray-200 rounded-xl p-6 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -380,10 +408,16 @@ export default function Administracion() {
                   Precio regular si se paga antes del día 15
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cuota Mensual Vencida */}
-            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+              whileHover={{ scale: 1.02 }}
+              className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -437,12 +471,17 @@ export default function Administracion() {
                   Recargo de {formatearPrecio(config.cuotaMensualVencida - config.cuotaMensual)} por pago fuera de término
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Seguro Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <motion.div 
+          initial={{ x: 50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200"
+        >
           <div className="border-b border-gray-200 p-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100">
@@ -456,7 +495,13 @@ export default function Administracion() {
           </div>
 
           <div className="p-6">
-            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.6 }}
+              whileHover={{ scale: 1.02 }}
+              className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -521,13 +566,18 @@ export default function Administracion() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Transferencias entre Cuentas */}
-      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200">
+      <motion.div 
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200"
+      >
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-purple-100">
@@ -551,7 +601,13 @@ export default function Administracion() {
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Efectivo con Toggle */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-green-50 to-white">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+              whileHover={{ y: -5, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+              className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-green-50 to-white"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-green-100">
@@ -572,10 +628,16 @@ export default function Administracion() {
               <p className="text-2xl font-bold text-green-600">
                 {formatearPrecio(propietarioEfectivo === "Bernardo" ? saldosCuentas.efectivoBernardo : saldosCuentas.efectivoDaniel)}
               </p>
-            </div>
+            </motion.div>
 
             {/* Transferencia con Toggle */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-blue-50 to-white">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
+              whileHover={{ y: -5, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+              className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-blue-50 to-white"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-blue-100">
@@ -596,10 +658,16 @@ export default function Administracion() {
               <p className="text-2xl font-bold text-blue-600">
                 {formatearPrecio(propietarioTransferencia === "Bernardo" ? saldosCuentas.transferenciaBernardo : saldosCuentas.transferenciaDaniel)}
               </p>
-            </div>
+            </motion.div>
 
             {/* Plazo Fijo */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-purple-50 to-white">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
+              whileHover={{ y: -5, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+              className="border border-gray-200 rounded-lg p-4 bg-linear-to-br from-purple-50 to-white"
+            >
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 rounded-lg bg-purple-100">
                   <PiggyBank className="w-5 h-5 text-purple-600" />
@@ -612,13 +680,18 @@ export default function Administracion() {
               <p className="text-2xl font-bold text-purple-600">
                 {formatearPrecio(saldosCuentas.plazoFijo)}
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Resumen de fechas importantes */}
-      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <motion.div 
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+      >
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5" style={{color: '#03a9f4'}} />
           Fechas Importantes
@@ -652,11 +725,16 @@ export default function Administracion() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Modal de Transferencia */}
+      <AnimatePresence>
       {showTransferModal && (
-        <div 
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -664,7 +742,13 @@ export default function Administracion() {
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full"
+          >
             <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -794,9 +878,10 @@ export default function Administracion() {
                 </div>
               </form>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }
