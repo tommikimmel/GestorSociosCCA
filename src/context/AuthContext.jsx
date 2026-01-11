@@ -9,7 +9,12 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsub = observeAuth((firebaseUser) => {
-      setUser(firebaseUser);
+      // Solo establecer el usuario si el email está verificado
+      if (firebaseUser && firebaseUser.emailVerified) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login, register } from "../services/auth";
+import { login, register, resendVerificationEmail, resetPassword } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 import logoCCA from "../assets/logoCCA.svg";
 import Alert from "../components/layout/Alert";
@@ -11,8 +11,13 @@ export default function Auth() {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [isRegister, setIsRegister] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const navigate = useNavigate();
-  const { alert, showError, closeAlert } = useAlert();
+  const { alert, showSuccess, showError, hideAlert } = useAlert();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,17 +25,27 @@ export default function Auth() {
     try {
       if (isRegister) {
         await register(email, password, nombre, apellido);
+        setVerificationEmail(email);
+        setNeedsVerification(true);
+        setEmail("");
+        setPassword("");
+        setNombre("");
+        setApellido("");
+        return; // No navegar, mostrar mensaje de verificación
       } else {
         await login(email, password);
+        // Si login es exitoso, navegar al dashboard
+        navigate("/");
       }
-
-      // SIEMPRE va al dashboard
-      navigate("/");
     } catch (error) {
       // Manejar errores de autenticación
       let errorMessage = "Error al autenticar";
       
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/email-not-verified') {
+        setVerificationEmail(email);
+        setNeedsVerification(true);
+        errorMessage = "Debés verificar tu email antes de iniciar sesión. Te enviamos un correo de verificación.";
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
         errorMessage = "Email o contraseña incorrectos";
       } else if (error.code === 'auth/user-not-found') {
         errorMessage = "No existe una cuenta con este email";
@@ -47,6 +62,65 @@ export default function Auth() {
       showError(
         "Error de autenticación",
         errorMessage,
+        error.code === 'auth/email-not-verified' ? 7000 : 5000
+      );
+    }
+  }
+
+  async function handleResendVerification() {
+    try {
+      await resendVerificationEmail(verificationEmail, password);
+      showSuccess(
+        "Éxito",
+        "Email de verificación reenviado correctamente. Revisá tu bandeja de entrada.",
+        5000
+      );
+    } catch (error) {
+      let errorMessage = "Error al reenviar email de verificación";
+      
+      if (error.code === 'auth/email-already-verified') {
+        errorMessage = "Tu email ya está verificado. Podés iniciar sesión.";
+        setNeedsVerification(false);
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Credenciales incorrectas. Probá iniciar sesión nuevamente.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Demasiados intentos. Intentá más tarde.";
+      }
+      
+      showError(
+        "Error",
+        errorMessage,
+        5000
+      );
+    }
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    
+    try {
+      await resetPassword(resetEmail);
+      showSuccess(
+        "Éxito",
+        "Te enviamos un correo con instrucciones para restablecer tu contraseña. Revisá tu bandeja de entrada.",
+        7000
+      );
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (error) {
+      let errorMessage = "Error al enviar email de recuperación";
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = "No existe una cuenta con este email";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "El formato del email es inválido";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Demasiados intentos. Intentá más tarde";
+      }
+      
+      showError(
+        "Error",
+        errorMessage,
         5000
       );
     }
@@ -60,9 +134,115 @@ export default function Auth() {
         title={alert.title}
         message={alert.message}
         show={alert.show}
-        onClose={closeAlert}
+        onClose={hideAlert}
         autoCloseDuration={alert.autoCloseDuration}
       />
+
+      {/* Mensaje de verificación de email */}
+      {needsVerification && (
+        <div className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full animate-[fadeIn_0.3s_ease-in-out]">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                ¡Cuenta creada con éxito!
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Te enviamos un correo de verificación a:
+              </p>
+              <p className="font-semibold text-gray-900 mb-4">
+                {verificationEmail}
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                Por favor, revisá tu bandeja de entrada y hacé click en el enlace de verificación. Una vez verificado, podrás iniciar sesión.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleResendVerification}
+                  className="w-full text-white py-2.5 rounded-lg font-medium transition-colors"
+                  style={{backgroundColor: '#03a9f4'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0288d1'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#03a9f4'}
+                >
+                  Reenviar email de verificación
+                </button>
+                <button
+                  onClick={() => setNeedsVerification(false)}
+                  className="w-full bg-gray-200 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de Recuperación de Contraseña */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-gray-100/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full animate-[fadeIn_0.3s_ease-in-out]">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                ¿Olvidaste tu contraseña?
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Ingresá tu email y te enviaremos un enlace para restablecer tu contraseña.
+              </p>
+              
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="text-left">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="submit"
+                    className="w-full text-white py-2.5 rounded-lg font-medium transition-colors"
+                    style={{backgroundColor: '#03a9f4'}}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#0288d1'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#03a9f4'}
+                  >
+                    Enviar email de recuperación
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetEmail("");
+                    }}
+                    className="w-full bg-gray-200 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Logo y título */}
       <div className="absolute top-4 sm:top-8 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 z-10">
         <img 
@@ -174,15 +354,33 @@ export default function Auth() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Contraseña
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
-                  style={{"--tw-ring-color": "#03a9f4"}}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -197,9 +395,14 @@ export default function Auth() {
 
               {!isRegister && (
                 <div className="text-center">
-                  <a href="#" className="text-sm hover:underline" style={{color: '#03a9f4'}}>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm hover:underline"
+                    style={{color: '#03a9f4'}}
+                  >
                     ¿Olvidaste tu contraseña?
-                  </a>
+                  </button>
                 </div>
               )}
             </form>
@@ -249,15 +452,33 @@ export default function Auth() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Contraseña
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
-                  style={{"--tw-ring-color": "#03a9f4"}}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -271,9 +492,14 @@ export default function Auth() {
               </button>
 
               <div className="text-center">
-                <a href="#" className="text-sm hover:underline" style={{color: '#03a9f4'}}>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm hover:underline"
+                  style={{color: '#03a9f4'}}
+                >
                   ¿Olvidaste tu contraseña?
-                </a>
+                </button>
               </div>
             </form>
           )}
@@ -357,15 +583,33 @@ export default function Auth() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Contraseña
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
-                  style={{"--tw-ring-color": "#03a9f4"}}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                    style={{"--tw-ring-color": "#03a9f4"}}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
