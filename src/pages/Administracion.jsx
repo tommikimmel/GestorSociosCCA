@@ -383,23 +383,23 @@ export default function Administracion() {
             </div>
 
             {/* Cuota Mensual Vencida */}
-            <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-orange-600" />
+            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-orange-600" />
                     Cuota Mensual Vencida
                   </h3>
-                  <p className="text-xs text-orange-600 mt-1">Después del día 15 del mes</p>
                 </div>
-                <div className="text-right flex items-center gap-2">
+                <p className="text-sm text-gray-500 mb-3">Después del día 15 del mes</p>
+                <div className="flex items-center gap-2">
                   {editando === 'cuotaMensualVencida' ? (
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         value={valorTemporal}
                         onChange={(e) => setValorTemporal(e.target.value)}
-                        className="w-32 px-2 py-1 border border-orange-300 rounded text-right font-bold text-orange-600 bg-white"
+                        className="w-32 px-2 py-1 border border-gray-300 rounded text-right font-bold text-orange-600"
                         autoFocus
                       />
                       <button
@@ -411,7 +411,7 @@ export default function Administracion() {
                       </button>
                       <button
                         onClick={cancelarEdicion}
-                        className="p-1.5 rounded bg-white text-gray-600 hover:bg-gray-100"
+                        className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -423,7 +423,7 @@ export default function Administracion() {
                       </p>
                       <button
                         onClick={() => iniciarEdicion('cuotaMensualVencida', config.cuotaMensualVencida)}
-                        className="p-1.5 rounded hover:bg-orange-100 text-orange-400 hover:text-orange-600"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -431,9 +431,9 @@ export default function Administracion() {
                   )}
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-orange-200">
-                <div className="flex items-center gap-1 text-xs text-orange-600">
-                  <AlertCircle className="w-3 h-3" />
+              <div className="mt-5 pt-4 border-t-2 border-gray-100 bg-linear-to-r from-orange-50/50 to-transparent rounded-b-lg -mx-6 -mb-6 px-6 py-4">
+                <div className="flex items-center gap-2 text-sm text-orange-700 font-medium">
+                  <AlertCircle className="w-4 h-4" />
                   Recargo de {formatearPrecio(config.cuotaMensualVencida - config.cuotaMensual)} por pago fuera de término
                 </div>
               </div>
@@ -456,23 +456,23 @@ export default function Administracion() {
           </div>
 
           <div className="p-6">
-            <div className="border border-blue-200 bg-blue-50 rounded-lg p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-blue-600" />
+            <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
                     Seguro Semestral
                   </h3>
-                  <p className="text-xs text-gray-600 mt-1">Vigencia: 6 meses</p>
                 </div>
-                <div className="text-right flex items-center gap-2">
+                <p className="text-sm text-gray-500 mb-3">Vigencia: 6 meses</p>
+                <div className="flex items-center gap-2">
                   {editando === 'seguro' ? (
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         value={valorTemporal}
                         onChange={(e) => setValorTemporal(e.target.value)}
-                        className="w-32 px-2 py-1 border border-blue-300 rounded text-right font-bold text-blue-600 bg-white"
+                        className="w-32 px-2 py-1 border border-gray-300 rounded text-right font-bold text-blue-600"
                         autoFocus
                       />
                       <button
@@ -484,19 +484,19 @@ export default function Administracion() {
                       </button>
                       <button
                         onClick={cancelarEdicion}
-                        className="p-1.5 rounded bg-white text-gray-600 hover:bg-gray-100"
+                        className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <p className="text-3xl font-bold text-blue-600">
+                      <p className="text-2xl font-bold text-blue-600">
                         {formatearPrecio(config.seguro)}
                       </p>
                       <button
                         onClick={() => iniciarEdicion('seguro', config.seguro)}
-                        className="p-1.5 rounded hover:bg-blue-100 text-blue-400 hover:text-blue-600"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -504,31 +504,23 @@ export default function Administracion() {
                   )}
                 </div>
               </div>
-              
-              <div className="mt-4 pt-4 border-t border-blue-200 space-y-2">
-                <p className="text-sm text-gray-700 font-medium">Cobertura incluida:</p>
-                <ul className="space-y-1 text-xs text-gray-600">
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Cobertura de responsabilidad civil</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Válido para todas las actividades del club</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Renovación semestral automática</span>
-                  </li>
-                </ul>
+              <div className="mt-5 pt-4 border-t-2 border-gray-100 bg-linear-to-r from-blue-50/50 to-transparent rounded-b-lg -mx-6 -mb-6 px-6 py-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <span className="text-lg">🛡️</span> Cobertura incluida:
+                  </p>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-600">✓</span>
+                      <span>Responsabilidad civil</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-600">✓</span>
+                      <span>Válido para todas las actividades</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Info adicional */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600">
-                <strong className="text-gray-700">Nota:</strong> El seguro debe estar al día para poder participar en las actividades del club. Se renueva cada 6 meses.
-              </p>
             </div>
           </div>
         </div>
